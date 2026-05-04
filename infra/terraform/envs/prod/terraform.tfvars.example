@@ -1,0 +1,2 @@
+shared_state_resource_group_name  = "rg-boutique-tfstate-weu"
+shared_state_storage_account_name = "stboutiquetfstateweu"

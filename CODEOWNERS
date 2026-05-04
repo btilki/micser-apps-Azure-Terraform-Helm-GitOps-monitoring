@@ -1,0 +1,5 @@
+# GitOps production changes — require reviewer(s) per architecture doc §16
+/gitops/envs/prod/ @biroltilki
+
+# Infrastructure
+/infra/terraform/ @biroltilki

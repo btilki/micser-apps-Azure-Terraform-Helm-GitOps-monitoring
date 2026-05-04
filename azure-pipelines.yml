@@ -1,0 +1,22 @@
+# Azure DevOps — default pipeline entry (placeholder).
+# Replace with real CI: e.g. extend from pipelines/templates or point "New pipeline" at pipelines/ci/<service>.yml
+#
+# Create your project & repo first, then: Pipelines → New → Azure Repos Git → select this file or a path under pipelines/
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    exclude:
+      - docs/*
+      - '**/*.md'
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - script: |
+      echo "Placeholder pipeline — add service builds under pipelines/ci/ (see pipelines/README.md)."
+      echo "Terraform: infra/terraform/envs/* — run from your machine or a dedicated pipeline with Azure backend."
+    displayName: Skeleton (no-op)

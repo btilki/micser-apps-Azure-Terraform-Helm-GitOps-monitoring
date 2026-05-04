@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"aks","Source":"../../modules/aks","Dir":"../../modules/aks"},{"Key":"dns","Source":"../../modules/dns","Dir":"../../modules/dns"},{"Key":"log_analytics","Source":"../../modules/log_analytics","Dir":"../../modules/log_analytics"},{"Key":"network","Source":"../../modules/network","Dir":"../../modules/network"}]}

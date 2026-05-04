@@ -1,0 +1,25 @@
+# Copy to root-app.yaml, set repoURL, then: kubectl apply -n argocd -f gitops/bootstrap/root-app.yaml
+# Child Application manifests live in bootstrap/applications/ (see that folder's README).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://dev.azure.com/ORG/PROJECT/_git/REPO_NAME
+    targetRevision: main
+    path: gitops/bootstrap/applications
+    directory:
+      recurse: true
+      include: "*.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
