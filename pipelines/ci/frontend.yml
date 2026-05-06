@@ -99,7 +99,13 @@ stages:
               path = Path("$(GITOPS_VALUES_FILE)")
               content = path.read_text()
               new = "$(ResolveDigest.IMAGE_DIGEST)"
-              updated = re.sub(r'digest:\s*"?sha256:[a-fA-F0-9]+"?', f'digest: "{new}"', content)
+              # Accept either placeholder or an existing sha256 digest value.
+              updated = re.sub(
+                  r'digest:\s*"?([^"\n]+)"?',
+                  f'digest: "{new}"',
+                  content,
+                  count=1
+              )
               if updated == content:
                   raise SystemExit("Unable to locate digest field in values file.")
               path.write_text(updated)
