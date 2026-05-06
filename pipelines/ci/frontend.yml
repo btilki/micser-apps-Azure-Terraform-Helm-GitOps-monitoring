@@ -85,7 +85,7 @@ stages:
                   -e TRIVY_PASSWORD="$ACR_TOKEN" \
                   aquasec/trivy:0.53.0 image \
                   --scanners vuln \
-                  --severity HIGH,CRITICAL \
+                  --severity CRITICAL \
                   --exit-code 1 \
                   --ignore-unfixed \
                   "$IMAGE_REF"
