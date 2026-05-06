@@ -1,0 +1,7 @@
+{
+  "tenantId": "4372a5ba-93fa-42a4-a9ce-241da29fc6f4",
+  "subscriptionId": "6b047f8d-0c64-480b-85d3-21c09381cc3d",
+  "resourceGroup": "rg-boutique-shared-weu",
+  "useWorkloadIdentityExtension": true,
+  "aadClientId": "5259a4fe-e8b7-498b-b2b9-e293a0d171af"
+}

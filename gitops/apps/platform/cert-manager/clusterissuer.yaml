@@ -21,4 +21,4 @@ spec:
             subscriptionID: 6b047f8d-0c64-480b-85d3-21c09381cc3d
             environment: AzurePublicCloud
             managedIdentity:
-              clientID: 50b0b001-e241-4293-8a5c-71c2e63ad531
+              clientID: 8edf3025-3cb2-4d69-b9ef-01ecd53e1e91
