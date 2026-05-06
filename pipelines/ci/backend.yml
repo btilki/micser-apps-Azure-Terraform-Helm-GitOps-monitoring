@@ -137,7 +137,7 @@ stages:
 
               RESPONSE="$(curl -sS -X POST \
                 -H "Accept: application/vnd.github+json" \
-                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Authorization: Bearer $GITHUB_TOKEN_2" \
                 https://api.github.com/repos/$(GITHUB_REPOSITORY)/pulls \
                 -d "$PAYLOAD")"
 
@@ -157,4 +157,4 @@ stages:
               echo "Created PR: $PR_URL"
             displayName: Push branch and open GitOps PR
             env:
-              GITHUB_TOKEN: $(GITHUB_TOKEN)
+              GITHUB_TOKEN_2: $(GITHUB_TOKEN_2)
