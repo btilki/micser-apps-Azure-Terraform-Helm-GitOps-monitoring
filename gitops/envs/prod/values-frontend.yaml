@@ -1,0 +1,14 @@
+image:
+  repository: acrboutiqueprodweu.azurecr.io/frontend
+  digest: "sha256:REPLACE_WITH_PROMOTED_DIGEST"
+
+ingress:
+  host: boutique.biroltilki.art
+  tls:
+    secretName: frontend-prod-tls
+
+# Schedule workloads to prod node pool.
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

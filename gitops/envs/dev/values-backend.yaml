@@ -1,0 +1,14 @@
+image:
+  repository: acrboutiquedevweu.azurecr.io/backend
+  digest: "sha256:REPLACE_WITH_DEV_DIGEST"
+
+ingress:
+  host: api-dev.boutique.biroltilki.art
+  tls:
+    secretName: backend-dev-tls
+
+# Schedule workloads to the user node pool (system pool is tainted CriticalAddonsOnly).
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

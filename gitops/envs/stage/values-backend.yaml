@@ -1,0 +1,14 @@
+image:
+  repository: acrboutiquestageweu.azurecr.io/backend
+  digest: "sha256:REPLACE_WITH_PROMOTED_DIGEST"
+
+ingress:
+  host: api-stage.boutique.biroltilki.art
+  tls:
+    secretName: backend-stage-tls
+
+# Schedule workloads to stage node pool.
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

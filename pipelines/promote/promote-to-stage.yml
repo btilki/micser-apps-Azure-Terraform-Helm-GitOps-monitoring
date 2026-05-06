@@ -1,0 +1,30 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+  - name: digest
+    displayName: Digest to promote (optional, ex: sha256:abcd...)
+    type: string
+    default: ''
+
+extends:
+  template: ../templates/promote-image.yml
+  parameters:
+    stageName: PromoteToStage
+    stageDisplayName: Promote image from dev to stage
+    deploymentName: PromoteStage
+    deploymentDisplayName: Import and create stage GitOps PR
+    environmentName: promote-stage
+    imageName: frontend
+    sourceAcrLoginServer: acrboutiquedevweu.azurecr.io
+    targetAcrName: acrboutiquestageweu
+    targetAcrLoginServer: acrboutiquestageweu.azurecr.io
+    sourceValuesFile: gitops/envs/dev/values-frontend.yaml
+    targetValuesFile: gitops/envs/stage/values-frontend.yaml
+    githubRepository: btilki/microservices-cicd-on-azure-with-argocd-and-observability
+    azureSubscriptionConnection: dev-azure-service-connection
+    promotionLabel: stage
+    digest: ${{ parameters.digest }}
