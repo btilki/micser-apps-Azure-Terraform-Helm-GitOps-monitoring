@@ -181,6 +181,12 @@ stages:
                 - script: |
                     set -euo pipefail
 
+                    if [ -z "${GITHUB_TOKEN:-}" ]; then
+                      echo "GITHUB_TOKEN is empty."
+                      exit 1
+                    fi
+                    echo "GITHUB_TOKEN length: ${#GITHUB_TOKEN}"
+
                     USER_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" \
                       -H "Accept: application/vnd.github+json" \
                       -H "Authorization: Bearer $GITHUB_TOKEN" \
