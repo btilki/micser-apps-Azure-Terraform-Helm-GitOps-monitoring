@@ -25,6 +25,6 @@ extends:
     sourceValuesFile: gitops/envs/dev/values-backend.yaml
     targetValuesFile: gitops/envs/stage/values-backend.yaml
     githubRepository: btilki/microservices-cicd-on-azure-with-argocd-and-observability
-    azureSubscriptionConnection: stage-azure-service-connection
+    azureSubscriptionConnection: promotion-azure-connection
     promotionLabel: stage
     digest: ${{ parameters.digest }}
