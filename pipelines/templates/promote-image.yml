@@ -59,7 +59,11 @@ stages:
                       if [ -n "$RAW_DIGEST" ]; then
                         DIGEST="$RAW_DIGEST"
                       else
-                        DIGEST="$(SOURCE_VALUES_FILE='${{ parameters.sourceValuesFile }}' python3 -c 'import os,re;from pathlib import Path;content=Path(os.environ["SOURCE_VALUES_FILE"]).read_text();match=re.search(r"digest:\\s*\"?([^\"\\n]+)\"?",content);print(match.group(1) if match else (_ for _ in ()).throw(SystemExit("Unable to locate digest in source values file.")))')"
+                        DIGEST="$(awk -F': ' '/^[[:space:]]*digest:/{gsub(/"/,"",$2); print $2; exit}' '${{ parameters.sourceValuesFile }}')"
+                        if [ -z "$DIGEST" ]; then
+                          echo "Unable to locate digest in source values file: ${{ parameters.sourceValuesFile }}"
+                          exit 1
+                        fi
                       fi
 
                       if ! echo "$DIGEST" | grep -Eq '^sha256:[a-f0-9]{64}$'; then
