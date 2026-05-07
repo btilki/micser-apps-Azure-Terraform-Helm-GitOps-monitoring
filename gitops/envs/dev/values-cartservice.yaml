@@ -1,0 +1,12 @@
+image:
+  repository: acrboutiquedevweu.azurecr.io/cartservice
+  digest: "sha256:REPLACE_WITH_DEV_DIGEST"
+
+service:
+  port: 7070
+  targetPort: 7070
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

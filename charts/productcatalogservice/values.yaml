@@ -1,0 +1,20 @@
+replicaCount: 1
+
+image:
+  repository: changeme.azurecr.io/productcatalogservice
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  port: 3550
+  targetPort: 3550
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []

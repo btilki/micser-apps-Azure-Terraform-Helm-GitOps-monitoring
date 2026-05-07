@@ -1,0 +1,11 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - script: |
+      echo "TODO: implement CI for productcatalogservice."
+      echo "Use pipelines/ci/frontend.yml or pipelines/ci/backend.yml as a reference."
+    displayName: Scaffold placeholder

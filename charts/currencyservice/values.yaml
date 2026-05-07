@@ -1,0 +1,20 @@
+replicaCount: 1
+
+image:
+  repository: changeme.azurecr.io/currencyservice
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  port: 7000
+  targetPort: 7000
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []

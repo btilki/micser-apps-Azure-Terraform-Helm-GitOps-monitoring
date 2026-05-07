@@ -51,6 +51,16 @@ Required assignments:
 
 If any required role is missing, the pipeline stops before image promotion.
 
+## Current Azure DevOps baseline
+
+Current repository pipelines are aligned to the following Azure DevOps names:
+
+- ARM service connection: `promotion-azure-connection`
+- Variable group: `variable-group-for-microservices`
+- GitHub secret variable: `GITHUB_TOKEN`
+
+See `pipelines/README.md` for pipeline-specific details.
+
 ## Next steps
 
 1. Create the **Git** remote and **Azure DevOps** project; push this repo (see `pipelines/README.md`).

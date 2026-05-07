@@ -1,0 +1,20 @@
+replicaCount: 1
+
+image:
+  repository: changeme.azurecr.io/redis-cart
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  port: 6379
+  targetPort: 6379
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []

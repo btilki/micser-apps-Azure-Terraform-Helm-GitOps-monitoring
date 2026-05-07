@@ -9,9 +9,17 @@
 ## Connect this repo in Azure DevOps
 
 1. Create a **Project** and import or connect this repository (**Azure Repos** or **GitHub** service connection).
-2. Create **Environments** / **Service connections** (ARM, ACR, Workload Identity Federation per architecture §8–9).
+2. Create **Environments** / **Service connections**.
+   - Required now:
+     - `promotion-azure-connection` (Azure Resource Manager; used by promotion and CI AzureCLI steps)
+   - Optional:
+     - A dedicated dev ARM connection (if you later split CI/prod identities)
+     - A dedicated ACR Docker connection (not required with current CI AzureCLI flow)
 3. Create pipelines from existing YAML: **Pipelines → New pipeline → Existing Azure Pipelines YAML file** and pick `azure-pipelines.yml` or a file under `ci/`.
-4. Replace placeholders in variable groups (subscription ID, ACR names, GitOps repo URL) before first run.
+4. Configure variable groups before first run.
+   - Required now:
+     - `variable-group-for-microservices`
+     - secret variable: `GITHUB_TOKEN`
 
 See `docs/cicd-pipeline-plan.md` and `docs/implementation/phase-03-first-service-frontend.md`.
 
