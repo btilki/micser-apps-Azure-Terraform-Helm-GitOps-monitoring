@@ -27,6 +27,15 @@ parameters:
     type: string
   - name: promotionLabel
     type: string
+  - name: requiredSourceAcrRoles
+    type: string
+    default: AcrPull
+  - name: requiredTargetAcrRoles
+    type: string
+    default: AcrPush
+  - name: requiredReaderResourceGroups
+    type: string
+    default: ''
   - name: digest
     type: string
     default: ''
@@ -44,6 +53,63 @@ stages:
               steps:
                 - checkout: self
                   persistCredentials: true
+
+                - task: AzureCLI@2
+                  displayName: Validate service principal role assignments
+                  inputs:
+                    azureSubscription: ${{ parameters.azureSubscriptionConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+
+                      SOURCE_ACR_NAME="${{ split(parameters.sourceAcrLoginServer, '.')[0] }}"
+                      TARGET_ACR_NAME="${{ parameters.targetAcrName }}"
+                      REQUIRED_SOURCE_ROLES="${{ parameters.requiredSourceAcrRoles }}"
+                      REQUIRED_TARGET_ROLES="${{ parameters.requiredTargetAcrRoles }}"
+                      REQUIRED_READER_RGS="${{ parameters.requiredReaderResourceGroups }}"
+
+                      APP_ID="$(az account show --query user.name -o tsv)"
+                      SP_OBJECT_ID="$(az ad sp show --id "$APP_ID" --query id -o tsv)"
+
+                      if [ -z "$SP_OBJECT_ID" ]; then
+                        echo "Unable to resolve service principal object id."
+                        exit 1
+                      fi
+
+                      SOURCE_ACR_ID="$(az acr show --name "$SOURCE_ACR_NAME" --query id -o tsv)"
+                      TARGET_ACR_ID="$(az acr show --name "$TARGET_ACR_NAME" --query id -o tsv)"
+
+                      check_roles() {
+                        local scope="$1"
+                        local required_csv="$2"
+                        local scope_label="$3"
+                        IFS=',' read -r -a roles <<< "$required_csv"
+                        for role in "${roles[@]}"; do
+                          role="$(echo "$role" | xargs)"
+                          [ -z "$role" ] && continue
+                          ROLE_COUNT="$(az role assignment list --assignee-object-id "$SP_OBJECT_ID" --scope "$scope" --query "[?roleDefinitionName=='$role'] | length(@)" -o tsv)"
+                          if [ "${ROLE_COUNT:-0}" -lt 1 ]; then
+                            echo "Missing role '$role' on $scope_label ($scope)"
+                            exit 1
+                          fi
+                        done
+                      }
+
+                      check_roles "$SOURCE_ACR_ID" "$REQUIRED_SOURCE_ROLES" "source ACR"
+                      check_roles "$TARGET_ACR_ID" "$REQUIRED_TARGET_ROLES" "target ACR"
+
+                      if [ -n "$REQUIRED_READER_RGS" ]; then
+                        IFS=',' read -r -a rgs <<< "$REQUIRED_READER_RGS"
+                        for rg in "${rgs[@]}"; do
+                          rg="$(echo "$rg" | xargs)"
+                          [ -z "$rg" ] && continue
+                          RG_ID="$(az group show --name "$rg" --query id -o tsv)"
+                          check_roles "$RG_ID" "Reader" "resource group $rg"
+                        done
+                      fi
+
+                      echo "Service principal has all required roles."
 
                 - task: AzureCLI@2
                   displayName: Resolve digest and import image

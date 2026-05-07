@@ -14,3 +14,9 @@
 4. Replace placeholders in variable groups (subscription ID, ACR names, GitOps repo URL) before first run.
 
 See `docs/cicd-pipeline-plan.md` and `docs/implementation/phase-03-first-service-frontend.md`.
+
+## Promotion permissions control
+
+Promotion pipelines now enforce a pre-check for required Azure RBAC roles on the promotion service principal before image import and GitOps PR creation.
+
+For required role mappings (dev/stage/prod ACR + Reader scopes), see `README.md` section `Promotion SP role control`.

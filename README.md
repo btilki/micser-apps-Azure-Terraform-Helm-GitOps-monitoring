@@ -32,6 +32,25 @@ Production-grade CI/CD platform on Azure — AKS, Terraform, ArgoCD, Azure DevOp
 
 Copy `*.tfvars.example` to `terraform.tfvars` and configure the Azure backend per `backend.hcl.example`.
 
+## Promotion SP role control
+
+Promotion pipelines now include a fail-fast permission gate in `pipelines/templates/promote-image.yml` (`Validate service principal role assignments` step).  
+The check runs before `az acr import` and PR creation, and validates role assignments for the service principal behind `promotion-azure-connection`.
+
+Required assignments:
+
+- Stage promotions (`promote-to-stage.yml`, `promote-to-stage-backend.yml`):
+  - Source ACR (dev): `AcrPull`
+  - Target ACR (stage): `AcrPull`, `AcrPush`
+- Prod promotions (`promote-to-prod.yml`, `promote-to-prod-backend.yml`):
+  - Source ACR (stage): `AcrPull`
+  - Target ACR (prod): `AcrPush`
+- Reader scopes (all promotion pipelines):
+  - `rg-boutique-stage-weu`: `Reader`
+  - `rg-boutique-prod-weu`: `Reader`
+
+If any required role is missing, the pipeline stops before image promotion.
+
 ## Next steps
 
 1. Create the **Git** remote and **Azure DevOps** project; push this repo (see `pipelines/README.md`).

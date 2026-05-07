@@ -27,4 +27,7 @@ extends:
     githubRepository: btilki/microservices-cicd-on-azure-with-argocd-and-observability
     azureSubscriptionConnection: promotion-azure-connection
     promotionLabel: stage
+    requiredSourceAcrRoles: AcrPull
+    requiredTargetAcrRoles: AcrPull,AcrPush
+    requiredReaderResourceGroups: rg-boutique-stage-weu,rg-boutique-prod-weu
     digest: ${{ parameters.digest }}
