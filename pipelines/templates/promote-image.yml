@@ -59,18 +59,7 @@ stages:
                       if [ -n "$RAW_DIGEST" ]; then
                         DIGEST="$RAW_DIGEST"
                       else
-                        DIGEST="$(python3 - <<'PY'
-                        import re
-                        from pathlib import Path
-
-                        path = Path("${{ parameters.sourceValuesFile }}")
-                        content = path.read_text()
-                        match = re.search(r'digest:\s*"?([^"\n]+)"?', content)
-                        if not match:
-                            raise SystemExit("Unable to locate digest in source values file.")
-                        print(match.group(1))
-                        PY
-                        )"
+                        DIGEST="$(SOURCE_VALUES_FILE='${{ parameters.sourceValuesFile }}' python3 -c 'import os,re;from pathlib import Path;content=Path(os.environ["SOURCE_VALUES_FILE"]).read_text();match=re.search(r"digest:\\s*\"?([^\"\\n]+)\"?",content);print(match.group(1) if match else (_ for _ in ()).throw(SystemExit("Unable to locate digest in source values file.")))')"
                       fi
 
                       if ! echo "$DIGEST" | grep -Eq '^sha256:[a-f0-9]{64}$'; then
