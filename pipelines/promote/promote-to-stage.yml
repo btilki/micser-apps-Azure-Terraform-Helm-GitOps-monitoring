@@ -4,6 +4,9 @@ pr: none
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  - group: 'variable-group-for-microservices'
+
 parameters:
   - name: digest
     displayName: "Digest to promote (optional, ex: sha256:abcd...)"
