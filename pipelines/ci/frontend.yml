@@ -27,7 +27,6 @@ variables:
   DEV_ACR_LOGIN_SERVER: acrboutiquedevweu.azurecr.io
   IMAGE_REPOSITORY: frontend
   GITOPS_VALUES_FILE: gitops/envs/dev/values-frontend.yaml
-  ACR_SERVICE_CONNECTION: dev-acr-service-connection
   AZURE_SUBSCRIPTION_CONNECTION: dev-azure-service-connection
   GITHUB_REPOSITORY: btilki/microservices-cicd-on-azure-with-argocd-and-observability
 
@@ -47,16 +46,17 @@ stages:
               echo "Add frontend lint/test commands for your stack here."
             displayName: Run lint/tests (placeholder)
 
-          - task: Docker@2
+          - task: AzureCLI@2
             displayName: Build and push image
             inputs:
-              containerRegistry: $(ACR_SERVICE_CONNECTION)
-              repository: $(IMAGE_REPOSITORY)
-              command: buildAndPush
-              Dockerfile: apps/frontend/Dockerfile
-              buildContext: .
-              tags: |
-                $(Build.SourceVersion)
+              azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                az acr login --name "$(DEV_ACR_NAME)"
+                docker build -f apps/frontend/Dockerfile -t "$(DEV_ACR_LOGIN_SERVER)/$(IMAGE_REPOSITORY):$(Build.SourceVersion)" .
+                docker push "$(DEV_ACR_LOGIN_SERVER)/$(IMAGE_REPOSITORY):$(Build.SourceVersion)"
 
           - task: AzureCLI@2
             displayName: Resolve pushed image digest
