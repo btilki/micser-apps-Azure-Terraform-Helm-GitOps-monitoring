@@ -99,24 +99,33 @@ stages:
 
           - script: |
               set -euo pipefail
-              python3 - <<'PY'
-              import re
-              from pathlib import Path
+              FILE="$(GITOPS_VALUES_FILE)"
+              NEW_DIGEST="$(ResolveDigest.IMAGE_DIGEST)"
+              TMP_FILE="$(mktemp)"
 
-              path = Path("$(GITOPS_VALUES_FILE)")
-              content = path.read_text()
-              new = "$(ResolveDigest.IMAGE_DIGEST)"
-              updated = re.sub(
-                  r'digest:\s*"?([^"\n]+)"?',
-                  f'digest: "{new}"',
-                  content,
-                  count=1
-              )
-              if updated == content:
-                  raise SystemExit("Unable to locate digest field in values file.")
-              path.write_text(updated)
-              print(f"Updated {path} with digest {new}")
-              PY
+              awk -v digest="$NEW_DIGEST" '
+                BEGIN { updated = 0 }
+                {
+                  if (updated == 0 && $1 == "digest:") {
+                    print "  digest: \"" digest "\""
+                    updated = 1
+                    next
+                  }
+                  print
+                }
+                END {
+                  if (updated == 0) {
+                    exit 42
+                  }
+                }
+              ' "$FILE" > "$TMP_FILE" || {
+                echo "Unable to locate digest field in $FILE."
+                rm -f "$TMP_FILE"
+                exit 1
+              }
+
+              mv "$TMP_FILE" "$FILE"
+              echo "Updated $FILE with digest $NEW_DIGEST"
             displayName: Update GitOps values digest
 
           - script: |
