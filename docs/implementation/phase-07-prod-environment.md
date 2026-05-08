@@ -189,28 +189,40 @@ Each includes: **symptoms**, **immediate checks**, **rollback/mitigation**, **ow
 
 ### 9) Promote image to prod (controlled release)
 
-1. Run prod promotion pipelines with approvals:
-   - `promote-to-prod` (frontend)
-   - `promote-to-prod-backend` (backend)
-2. Verify PR updates:
-   - prod values files
-   - digest-only change
-   - repository points to prod ACR
-3. Merge PR after approvals.
+**Pipelines (Azure DevOps, manual run):**
 
-Verify digest exists in prod ACR:
+| Service | YAML |
+|---------|------|
+| Frontend | `pipelines/promote/promote-to-prod.yml` |
+| Backend | `pipelines/promote/promote-to-prod-backend.yml` |
+
+1. **Queue** each pipeline on `main` (or the branch your GitOps repo uses). Approve the **`promote-prod`** environment when prompted.
+2. **Optional parameter:** **Digest to promote** — leave empty to read digest from **stage** values on the checked-out branch; or set full `sha256:…` if stage Git is not updated yet.
+3. When the pipeline opens the GitHub PR, **review**:
+   - Only **`gitops/envs/prod/values-<service>.yaml`** (or equivalent path) should change.
+   - **`image.digest`**: full **`sha256:`** (64 hex chars), not a placeholder.
+   - **`image.repository`**: **`acrboutiqueprodweu.azurecr.io/<service>`** (prod ACR login server for this repo).
+4. Get **code review** per [branch protection](../gitops/prod-branch-protection.md), then **merge** the PR.
+
+**Prod ACR name (this project):** `acrboutiqueprodweu`
+
+Verify the digest exists in prod ACR after import (requires `az login` and registry access):
+
 ```bash
 az acr manifest list-metadata \
-  --registry <PROD_ACR_NAME> \
+  --registry acrboutiqueprodweu \
   --name frontend \
   -o table
-```
-```bash
+
 az acr manifest list-metadata \
-  --registry <PROD_ACR_NAME> \
+  --registry acrboutiqueprodweu \
   --name backend \
   -o table
 ```
+
+Confirm the **digest** column matches **`gitops/envs/prod/values-frontend.yaml`** / **`values-backend.yaml`** on `main` after merge.
+
+5. Continue to **§10 Manual Argo CD sync** — prod apps do not auto-sync.
 
 ### 10) Manual Argo CD sync (human gate)
 
