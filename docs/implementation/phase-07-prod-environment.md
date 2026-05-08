@@ -147,22 +147,34 @@ Root **`CODEOWNERS`** assigns both teams to those paths. Replace org/team slugs 
 
 ### 7) Configure Alertmanager notifications
 
-In monitoring values (kube-prometheus-stack):
-- set receiver channel (email/Slack/Teams/webhook)
-- route at least:
-  - high error rate
-  - pod crash loops
-  - ingress 5xx burst
-  - cert expiry warning
+Reference values file: **`gitops/apps/platform/kube-prometheus-stack/values.yaml`** (`kube-prometheus-stack` Helm chart).
 
-Apply and verify:
+It configures:
+- **Receiver `boutique-on-call`:** Slack incoming webhook, SMTP email, and generic webhook (Teams / automation) — replace `REPLACE_*` placeholders or mount secrets.
+- **Routes** for: **pod crash loops** (`KubePodCrashLooping`, `KubePodNotReady`, `KubeJobFailed`), **ingress 5xx / sustained error ratio** (`BoutiqueIngress5xxBurst`, `BoutiqueHighHttp5xxRatio`), **cert expiry** (`BoutiqueCertificateExpiresSoon` + cert-manager alert names if present). Default **severity** alerts also go to the same receiver; **Watchdog** / **InfoInhibitor** stay muted.
+- **AKS:** default rules for etcd / scheduler / controller-manager **disabled** (control plane not scraped).
+
+Apply (example):
 ```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  -n monitoring --create-namespace \
+  -f gitops/apps/platform/kube-prometheus-stack/values.yaml
 kubectl get pods -n monitoring
 ```
 
-Trigger test notification (example):
-- use Alertmanager test route or temporary test alert rule
-- confirm message reaches your on-call channel
+**Ingress metrics:** custom rules expect `nginx_ingress_controller_requests` (NGINX Ingress ServiceMonitor / scrape).
+
+**Cert-manager metrics:** enable cert-manager’s Prometheus integration so `certmanager_certificate_expiration_timestamp_seconds` exists.
+
+**Test notification** (fires a synthetic alert to Alertmanager):
+```bash
+kubectl -n monitoring port-forward svc/kube-prometheus-stack-alertmanager 9093:9093
+curl -sS -H "Content-Type: application/json" \
+  -d '[{"labels":{"alertname":"BoutiqueManualTest","severity":"warning"},"annotations":{"summary":"Manual Alertmanager test"}}]' \
+  http://127.0.0.1:9093/api/v2/alerts
+```
+Confirm delivery on Slack/email/webhook, then silence or wait for auto-resolve.
 
 ### 8) Runbooks (minimum operational set)
 
