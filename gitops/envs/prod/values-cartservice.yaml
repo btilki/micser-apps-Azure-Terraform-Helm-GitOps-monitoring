@@ -2,7 +2,7 @@ image:
   repository: acrboutiqueprodweu.azurecr.io/cartservice
   digest: "sha256:00826f3b030c1ffab3c8146ecba31b35dbda04fc29a619e60f7d68658cc8e073"
 
-replicaCount: 2
+replicaCount: 1
 
 resources:
   requests:

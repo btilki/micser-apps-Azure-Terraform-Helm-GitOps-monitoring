@@ -2,7 +2,7 @@ image:
   repository: acrboutiqueprodweu.azurecr.io/currencyservice
   digest: "sha256:bdbed665caa2b1afe72d01e2d5885587d543b2aaeb5587538d81921e7a777251"
 
-replicaCount: 2
+replicaCount: 1
 
 resources:
   requests:
