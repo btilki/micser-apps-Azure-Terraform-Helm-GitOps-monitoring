@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/productcatalogservice
-  digest: "sha256:1678d5f0b049b8c1f099e597ce635c2bae416fa3611cdd9faac8459ce2ba94a9"
+  digest: "sha256:4a18d1a968b4a490c8e900207d2b199ae2da41e4a3ddb8ead8aac1f7bcf79ab5"
 
 service:
   port: 3550
