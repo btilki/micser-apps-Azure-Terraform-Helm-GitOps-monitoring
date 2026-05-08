@@ -1,0 +1,19 @@
+# Default ingress posture for prod: only traffic from pods in this namespace
+# and from the nginx ingress controller namespace. Egress is unchanged (allowed).
+# If your ingress runs elsewhere, add another ingress.from entry or adjust the selector.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prod-baseline-ingress
+  namespace: prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
