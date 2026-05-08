@@ -132,8 +132,17 @@ stages:
                         fi
                       fi
 
+                      DIGEST="$(echo "$DIGEST" | tr -d '[:space:]')"
+
                       if ! echo "$DIGEST" | grep -Eq '^sha256:[a-f0-9]{64}$'; then
+                        if echo "$DIGEST" | grep -Eiq 'replace|placeholder|changeme|your_digest|example|todo'; then
+                          echo "Digest in ${{ parameters.sourceValuesFile }} is still a placeholder: $DIGEST"
+                          echo "Fix: merge the real digest into that file on the branch this pipeline uses (usually main),"
+                          echo "or queue this run with the pipeline parameter 'digest' set to the full value from stage ACR (sha256:... 64 hex chars)."
+                          exit 1
+                        fi
                         echo "Digest format is invalid: $DIGEST"
+                        echo "Expected: sha256: followed by exactly 64 lowercase hexadecimal digits."
                         exit 1
                       fi
 

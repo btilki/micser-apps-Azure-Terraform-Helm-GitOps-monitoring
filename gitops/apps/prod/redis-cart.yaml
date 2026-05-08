@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-cart-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: boutique-prod
+  source:
+    repoURL: https://github.com/btilki/microservices-cicd-on-azure-with-argocd-and-observability.git
+    targetRevision: main
+    path: charts/redis-cart
+    helm:
+      releaseName: redis-cart
+      valueFiles:
+        - ../../gitops/envs/prod/values-redis-cart.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
