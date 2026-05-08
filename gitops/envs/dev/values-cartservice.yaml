@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/cartservice
-  digest: "sha256:00826f3b030c1ffab3c8146ecba31b35dbda04fc29a619e60f7d68658cc8e073"
+  digest: "sha256:2dc6c95327a1f549677bc5ea90b8f1e445c4ce9c89a8ccf047462325a7ada860"
 
 service:
   port: 7070
