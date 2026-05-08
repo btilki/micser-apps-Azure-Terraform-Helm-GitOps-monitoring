@@ -11,7 +11,8 @@ serviceAccount:
 
 service:
   port: 80
-  targetPort: 7000
+  # Must match apps/backend/Dockerfile (nginx listens on 8080).
+  targetPort: 8080
 
 ingress:
   enabled: true
