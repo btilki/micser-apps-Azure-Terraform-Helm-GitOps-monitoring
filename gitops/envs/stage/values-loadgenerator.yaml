@@ -1,0 +1,24 @@
+enabled: false
+
+image:
+  repository: acrboutiquestageweu.azurecr.io/loadgenerator
+  digest: "sha256:REPLACE_WITH_STAGE_DIGEST"
+
+replicaCount: 0
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations:
+  - key: env
+    operator: Equal
+    value: stage
+    effect: NoSchedule

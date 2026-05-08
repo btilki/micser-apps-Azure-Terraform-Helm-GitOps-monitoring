@@ -2,6 +2,16 @@ image:
   repository: acrboutiquestageweu.azurecr.io/backend
   digest: "sha256:801af4513ac121bfbd2da16ce4412d9800fd69ce13d7a0b35363b4e2f9dc97be"
 
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 150m
+    memory: 192Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
 ingress:
   host: api-stage.boutique.biroltilki.art
   tls:
@@ -11,4 +21,8 @@ ingress:
 nodeSelector:
   kubernetes.azure.com/mode: user
 
-tolerations: []
+tolerations:
+  - key: env
+    operator: Equal
+    value: stage
+    effect: NoSchedule

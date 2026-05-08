@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: recommendationservice-stage
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: boutique-stage
+  source:
+    repoURL: https://github.com/btilki/microservices-cicd-on-azure-with-argocd-and-observability.git
+    targetRevision: main
+    path: charts/recommendationservice
+    helm:
+      releaseName: recommendationservice
+      valueFiles:
+        - ../../gitops/envs/stage/values-recommendationservice.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,26 @@
+image:
+  repository: acrboutiquestageweu.azurecr.io/cartservice
+  digest: "sha256:REPLACE_WITH_STAGE_DIGEST"
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 400m
+    memory: 512Mi
+
+service:
+  port: 7070
+  targetPort: 7070
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations:
+  - key: env
+    operator: Equal
+    value: stage
+    effect: NoSchedule

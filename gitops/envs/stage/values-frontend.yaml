@@ -2,8 +2,21 @@ image:
   repository: acrboutiquestageweu.azurecr.io/frontend
   digest: "sha256:a7ea6e5a8b398ef9070e29735ed546ca85f261846bc9101d90ce97f760791933"
 
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 150m
+    memory: 192Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
 ingress:
-  host: stage.boutique.biroltilki.art
+  className: nginx
+  host: stage.biroltilki.art
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
   tls:
     secretName: frontend-stage-tls
 
@@ -11,4 +24,8 @@ ingress:
 nodeSelector:
   kubernetes.azure.com/mode: user
 
-tolerations: []
+tolerations:
+  - key: env
+    operator: Equal
+    value: stage
+    effect: NoSchedule
