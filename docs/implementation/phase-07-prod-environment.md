@@ -178,17 +178,14 @@ Confirm delivery on Slack/email/webhook, then silence or wait for auto-resolve.
 
 ### 8) Runbooks (minimum operational set)
 
-Add concise runbooks in `docs/runbooks/`:
-- prod rollback
-- ingress 5xx triage
-- certificate renewal/expiry incident
-- failing Argo sync in prod
+See **`docs/runbooks/README.md`** — index for:
 
-Each runbook should include:
-- symptoms
-- immediate checks
-- rollback or mitigation steps
-- owner/escalation path
+- [prod rollback](../runbooks/prod-rollback.md)
+- [ingress 5xx triage](../runbooks/ingress-5xx-triage.md)
+- [certificate renewal / expiry](../runbooks/certificate-renewal-expiry.md)
+- [failing Argo CD sync in prod](../runbooks/failing-argocd-sync-prod.md)
+
+Each includes: **symptoms**, **immediate checks**, **rollback/mitigation**, **owner/escalation**.
 
 ### 9) Promote image to prod (controlled release)
 
