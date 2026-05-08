@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquestageweu.azurecr.io/productcatalogservice
-  digest: "sha256:REPLACE_WITH_STAGE_DIGEST"
+  digest: "sha256:1678d5f0b049b8c1f099e597ce635c2bae416fa3611cdd9faac8459ce2ba94a9"
 
 replicaCount: 1
 
