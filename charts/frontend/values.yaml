@@ -13,6 +13,10 @@ service:
   port: 80
   targetPort: 8080
 
+googleDemo:
+  enabled: false
+  externalName: frontend.google-boutique.svc.cluster.local
+
 ingress:
   enabled: true
   className: nginx
