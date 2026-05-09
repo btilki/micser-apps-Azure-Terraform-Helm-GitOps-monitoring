@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend
+  name: cartservice-dev
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,11 +10,11 @@ spec:
   source:
     repoURL: https://github.com/btilki/microservices-cicd-on-azure-with-argocd-and-observability.git
     targetRevision: main
-    path: charts/frontend
+    path: charts/cartservice
     helm:
-      releaseName: frontend
+      releaseName: cartservice
       valueFiles:
-        - ../../gitops/envs/dev/values-frontend.yaml
+        - ../../gitops/envs/dev/values-cartservice.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: dev

@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: redis-cart
+  name: frontend-dev
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,11 +10,11 @@ spec:
   source:
     repoURL: https://github.com/btilki/microservices-cicd-on-azure-with-argocd-and-observability.git
     targetRevision: main
-    path: charts/redis-cart
+    path: charts/frontend
     helm:
-      releaseName: redis-cart
+      releaseName: frontend
       valueFiles:
-        - ../../gitops/envs/dev/values-redis-cart.yaml
+        - ../../gitops/envs/dev/values-frontend.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: dev

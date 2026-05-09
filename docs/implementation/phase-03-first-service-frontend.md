@@ -14,13 +14,13 @@
 
 2. **Helm** — Create `charts/frontend` (Deployment, Service, ServiceAccount; Ingress for dev; values for registry + **digest**, tolerations/nodeSelector for `env=dev`).
 
-3. **GitOps** — Add `gitops/apps/dev/frontend.yaml` (Argo CD `Application`) and `gitops/envs/dev/values-frontend.yaml` (dev ACR login server + placeholder digest).
+3. **GitOps** — Add `gitops/apps/dev/frontend-dev.yaml` (Argo CD `Application`, `metadata.name: frontend-dev`) and `gitops/envs/dev/values-frontend.yaml` (dev ACR login server + placeholder digest).
 
 4. **Register app** — Add a child Application under `gitops/bootstrap/applications/` (or your app-of-apps) so the root sync picks up `frontend`.
 
 5. **Azure DevOps** — New pipeline from YAML: `pipelines/ci/frontend.yml` (create file): build image, run tests/lint, **Trivy**, push to **dev** ACR, output digest, script or task to open PR updating `gitops/envs/dev/values-frontend.yaml`. Configure **service connection** (ACR push, federated identity if used).
 
-6. **Merge** GitOps PR — In Argo CD: app syncs; **Applications** → `frontend` healthy.
+6. **Merge** GitOps PR — In Argo CD: app syncs; **Applications** → `frontend-dev` healthy.
 
 7. **TLS** — Ingress host matches cert (e.g. `dev.boutique.<domain>`); fix DNS/cert-manager if browser shows cert errors.
 
@@ -90,7 +90,7 @@ Use this as a concrete path from source code to a live HTTPS endpoint in `dev`.
 ### 3) Add GitOps app manifests
 
 1. Create Argo CD `Application`:
-   - `gitops/apps/dev/frontend.yaml`
+   - `gitops/apps/dev/frontend-dev.yaml`
 2. Create env values file:
    - `gitops/envs/dev/values-frontend.yaml`
 3. Put initial image settings in values file:
@@ -131,7 +131,7 @@ After pipeline runs, confirm:
 ### 6) Argo CD deployment verification
 
 1. In Argo CD UI:
-   - `frontend` app should become `Healthy` + `Synced`
+   - `frontend-dev` app should become `Healthy` + `Synced`
 2. CLI checks:
    ```bash
    kubectl get deploy,po,svc,ing -n dev
@@ -168,7 +168,7 @@ After pipeline runs, confirm:
 - TLS not issuing:
   - check `ClusterIssuer`, cert-manager challenges, and DNS TXT record creation.
 - Argo app OutOfSync:
-  - check chart path/value file refs in `frontend` Application.
+  - check chart path/value file refs in `frontend-dev` Application.
 - Image pull errors:
   - confirm ACR pull role for AKS kubelet identity.
 
