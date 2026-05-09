@@ -14,7 +14,7 @@ resources:
 
 ingress:
   className: nginx
-  host: stage.biroltilki.art
+  host: stage.boutique.biroltilki.art
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   tls:
