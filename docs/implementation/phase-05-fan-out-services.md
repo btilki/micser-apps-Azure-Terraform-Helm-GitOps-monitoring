@@ -13,6 +13,8 @@
 
 For **owned** services, repeat the frontend pattern: chart → env values → Argo app → CI digest PR. Deploy **upstream** workloads from Google’s manifests or Helm when you need a full end-to-end demo. Roll out in small batches and validate service-to-service traffic.
 
+**Dev baseline:** `gitops/platform/dev/` (Application **`platform-dev`**) applies `namespace.yaml` and **`networkpolicy-baseline.yaml`** (same ingress posture as stage/prod: in-namespace + `ingress-nginx`).
+
 ## Step-by-step
 
 1. Define rollout order for **owned** services (recommended):

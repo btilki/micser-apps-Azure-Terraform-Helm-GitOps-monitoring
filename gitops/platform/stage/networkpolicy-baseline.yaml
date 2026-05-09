@@ -1,13 +1,10 @@
-# Default ingress posture for prod: only traffic from pods in this namespace
+# Default ingress posture for stage: only traffic from pods in this namespace
 # and from the nginx ingress controller namespace. Egress is unchanged (allowed).
-# Same pattern as gitops/platform/stage/networkpolicy-baseline.yaml and
-# gitops/platform/dev/networkpolicy-baseline.yaml (per-environment name/namespace).
-# If your ingress runs elsewhere, add another ingress.from entry or adjust the selector.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: prod-baseline-ingress
-  namespace: prod
+  name: stage-baseline-ingress
+  namespace: stage
 spec:
   podSelector: {}
   policyTypes:
