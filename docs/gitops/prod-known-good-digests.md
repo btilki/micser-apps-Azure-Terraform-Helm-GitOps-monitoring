@@ -5,7 +5,6 @@
 | Service | Last known-good digest | Updated (UTC) | Release / PR / note |
 |---------|------------------------|---------------|-------------------|
 | frontend | `sha256:…` | | |
-| backend | `sha256:…` | | |
 | redis-cart | `sha256:…` | | |
 | cartservice | `sha256:…` | | |
 | currencyservice | `sha256:…` | | |

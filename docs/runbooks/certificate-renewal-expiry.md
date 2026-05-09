@@ -2,7 +2,7 @@
 
 ## Symptoms
 
-- Browser **certificate warning** or **NET::ERR_CERT_AUTHORITY_INVALID** on `boutique.biroltilki.art` / `api.boutique.biroltilki.art`.
+- Browser **certificate warning** or **NET::ERR_CERT_AUTHORITY_INVALID** on prod ingress hostnames (e.g. `boutique.biroltilki.art`).
 - `kubectl describe certificate -n prod` shows **not Ready** or **expiry** soon.
 - Alert **BoutiqueCertificateExpiresSoon** or cert-manager **CertificateExpiring** / **CertificateNotReady**.
 - Ingress serves default cert or HTTP only.

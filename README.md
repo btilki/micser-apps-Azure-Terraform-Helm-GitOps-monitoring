@@ -39,10 +39,10 @@ The check runs before `az acr import` and PR creation, and validates role assign
 
 Required assignments:
 
-- Stage promotions (`promote-to-stage.yml`, `promote-to-stage-backend.yml`):
+- Stage promotions (`promote-to-stage.yml`):
   - Source ACR (dev): `AcrPull`
   - Target ACR (stage): `AcrPull`, `AcrPush`
-- Prod promotions (`promote-to-prod.yml`, `promote-to-prod-backend.yml`):
+- Prod promotions (`promote-to-prod.yml`):
   - Source ACR (stage): `AcrPull`
   - Target ACR (prod): `AcrPush`
 - Reader scopes (all promotion pipelines):
@@ -73,14 +73,11 @@ See `pipelines/README.md` for pipeline-specific details.
   - [Failing Argo CD sync in prod](docs/runbooks/failing-argocd-sync-prod.md)
 - Promotion pipelines:
   - `pipelines/promote/promote-to-stage.yml`
-  - `pipelines/promote/promote-to-stage-backend.yml`
   - `pipelines/promote/promote-to-prod.yml`
-  - `pipelines/promote/promote-to-prod-backend.yml`
 - Environment hosts:
   - Dev storefront: `https://dev.boutique.biroltilki.art`
   - Stage storefront: `https://stage.boutique.biroltilki.art`
   - Prod storefront: `https://boutique.biroltilki.art`
-  - Prod API: `https://api.boutique.biroltilki.art`
 
 ## Next steps
 

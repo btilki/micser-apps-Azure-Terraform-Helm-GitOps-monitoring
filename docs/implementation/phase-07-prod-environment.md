@@ -34,9 +34,8 @@ This phase creates a controlled production path with human approvals and explici
    kubectl get ns
    az acr list -o table
    ```
-3. Confirm promote pipelines for prod are configured with approvals:
+3. Confirm promote pipeline for prod is configured with approvals:
    - `pipelines/promote/promote-to-prod.yml`
-   - `pipelines/promote/promote-to-prod-backend.yml`
 4. Confirm **DNS** and **TLS** for prod hostnames (GitOps does not create public DNS records):
    - **DNS target:** Each prod hostname (see step 5) must resolve to the **nginx ingress** front door for the cluster where **`prod`** workloads run—same idea as stage. In your DNS provider, point the name at the ingress controller **Service** `LoadBalancer`:
      - **A** / **AAAA** record(s) to the published **IP** address(es), or
@@ -61,7 +60,7 @@ Do not proceed if stage is unstable.
    - `ResourceQuota` — `resourcequota.yaml`
    - `LimitRange` — `limitrange.yaml`
    - default `NetworkPolicy` — `networkpolicy-baseline.yaml` (ingress only from `prod` + `ingress-nginx`; adjust if your controller namespace differs)
-   - optional `PriorityClass` — `priorityclass-boutique-prod-critical.yaml`; set `priorityClassName` in prod Helm values where charts support it (e.g. frontend/backend)
+   - optional `PriorityClass` — `priorityclass-boutique-prod-critical.yaml`; set `priorityClassName` in prod Helm values where charts support it (e.g. frontend)
 3. Commit these to GitOps-managed paths (recommended: `gitops/platform/prod/`).
 
 ### 2) Create Argo CD AppProject for prod
@@ -118,11 +117,12 @@ Prod-specific values:
 - `nodeSelector` / `tolerations` for prod pool
 - `loadgenerator.enabled: false`
 
-Ingress hosts should be prod-specific (for this repo convention):
+Ingress host for the storefront should be prod-specific (for this repo convention):
 - frontend: `boutique.biroltilki.art`
-- backend: `api.boutique.biroltilki.art`
 
-Point these names at your prod ingress **LoadBalancer** and ensure **`letsencrypt-prod`** + HTTP-01 work as described in **step 0.4**.
+(There is no separate “API” ingress in the upstream Online Boutique model; gRPC services are internal `ClusterIP`.)
+
+Point this hostname at your prod ingress **LoadBalancer** and ensure **`letsencrypt-prod`** + HTTP-01 work as described in **step 0.4**.
 
 Start with services that already have charts in this repo (`frontend`, `redis-cart`, `productcatalogservice`, `currencyservice`, `cartservice`) to avoid Unknown sync status from missing chart paths.
 
@@ -194,9 +194,8 @@ Each includes: **symptoms**, **immediate checks**, **rollback/mitigation**, **ow
 | Service | YAML |
 |---------|------|
 | Frontend | `pipelines/promote/promote-to-prod.yml` |
-| Backend | `pipelines/promote/promote-to-prod-backend.yml` |
 
-1. **Queue** each pipeline on `main` (or the branch your GitOps repo uses). Approve the **`promote-prod`** environment when prompted.
+1. **Queue** the pipeline on `main` (or the branch your GitOps repo uses). Approve the **`promote-prod`** environment when prompted.
 2. **Optional parameter:** **Digest to promote** — leave empty to read digest from **stage** values on the checked-out branch; or set full `sha256:…` if stage Git is not updated yet.
 3. When the pipeline opens the GitHub PR, **review**:
    - Only **`gitops/envs/prod/values-<service>.yaml`** (or equivalent path) should change.
@@ -213,14 +212,9 @@ az acr manifest list-metadata \
   --registry acrboutiqueprodweu \
   --name frontend \
   -o table
-
-az acr manifest list-metadata \
-  --registry acrboutiqueprodweu \
-  --name backend \
-  -o table
 ```
 
-Confirm the **digest** column matches **`gitops/envs/prod/values-frontend.yaml`** / **`values-backend.yaml`** on `main` after merge.
+Confirm the **digest** column matches **`gitops/envs/prod/values-frontend.yaml`** on `main` after merge (repeat for other owned services you promote the same way).
 
 5. Continue to **§10 Manual Argo CD sync** — prod apps do not auto-sync.
 
@@ -246,14 +240,13 @@ After **manual Argo Sync** (§10) and rollout settles (~2–5 minutes):
 1. **External HTTP checks** (expect **200** / **301** / **302**, not **5xx**):
    ```bash
    curl -sS -o /dev/null -w "frontend HTTP %{http_code}\n" -I https://boutique.biroltilki.art/
-   curl -sS -o /dev/null -w "backend HTTP %{http_code}\n" -I https://api.boutique.biroltilki.art/
    ```
    Optional TLS sanity:
    ```bash
    curl -I https://boutique.biroltilki.art/ 2>&1 | head -20
    ```
 
-2. **App journey in browser:** open **https://boutique.biroltilki.art/** — load main flows (browse, cart if applicable). Watch devtools **Network** for failed calls to **api.*** host.
+2. **App journey in browser:** open **https://boutique.biroltilki.art/** — load main flows (browse, cart if applicable). Watch devtools **Network** for failed calls to upstream gRPC services.
 
 3. **Dashboards / alerts (15–30 minutes):** Grafana (e.g. **kube-prometheus-stack**), **Alertmanager** / on-call channel — no new **5xx** bursts, **crash loop**, or **cert** alerts tied to this release. Cross-check [ingress 5xx runbook](../runbooks/ingress-5xx-triage.md) if needed.
 
@@ -284,7 +277,6 @@ If release is bad:
    ```bash
    kubectl rollout status deployment/<release>-<workload> -n prod
    curl -sS -o /dev/null -w "%{http_code}\n" -I https://boutique.biroltilki.art/
-   curl -sS -o /dev/null -w "%{http_code}\n" -I https://api.boutique.biroltilki.art/
    kubectl get pods -n prod
    ```
 

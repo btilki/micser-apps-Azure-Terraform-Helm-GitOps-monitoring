@@ -3,7 +3,7 @@
 ## Symptoms
 
 - Users report broken UI/API after a prod deploy or Git merge.
-- Error rate or latency spikes on `boutique.biroltilki.art` / `api.boutique.biroltilki.art`.
+- Error rate or latency spikes on `boutique.biroltilki.art` (and any other prod ingress hosts you use).
 - Argo CD shows prod app **Synced** but workloads misbehave after a **digest** or **values** change.
 - Azure Monitor / Alertmanager fires **BoutiqueHighHttp5xxRatio** or customer-visible SLO breach.
 
