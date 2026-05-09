@@ -1,5 +1,6 @@
 image:
   repository: acrboutiqueprodweu.azurecr.io/frontend
+  #digest: "sha256:a7ea6e5a8b398ef9070e29735ed546ca85f261846bc9101d90ce97f760791933"
   digest: "sha256:a7ea6e5a8b398ef9070e29735ed546ca85f261846bc9101d90ce97f760791933"
 
 replicaCount: 3
