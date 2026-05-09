@@ -65,3 +65,4 @@ gitops/bootstrap/root-app.yaml
 docs/
 myfile.doc
 .azure-tmp/
+.azure/
