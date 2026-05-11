@@ -18,10 +18,12 @@ parameters:
       - currencyservice
       - productcatalogservice
       - redis-cart
+  # Non-empty default avoids Azure DevOps marking the field "Required" in Run pipeline
+  # (empty default: '' is a known UI quirk). Whitespace is trimmed in promote-image.yml.
   - name: digest
-    displayName: "Digest to promote (optional, ex: sha256:abcd...)"
+    displayName: "Digest to promote (leave default to read from source GitOps; or sha256:...)"
     type: string
-    default: ''
+    default: ' '
 
 extends:
   template: ../templates/promote-image.yml
