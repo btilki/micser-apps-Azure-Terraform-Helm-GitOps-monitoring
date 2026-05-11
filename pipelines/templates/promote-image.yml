@@ -173,8 +173,10 @@ stages:
 
                 - script: |
                     set -euo pipefail
+                    echo "Update GitOps values: using job variable IMPORTED_IMAGE_DIGEST (template digest propagation v2)."
                     python3 - <<'PY'
                     import re
+                    import sys
                     from pathlib import Path
 
                     path = Path("${{ parameters.targetValuesFile }}")
@@ -182,11 +184,15 @@ stages:
                     digest = "$(IMPORTED_IMAGE_DIGEST)".strip()
                     repository = "${{ parameters.targetAcrLoginServer }}/${{ parameters.imageName }}"
 
+                    def fail(msg: str) -> None:
+                        # Single-line messages survive Azure DevOps log truncation better than multi-line.
+                        print(msg, file=sys.stderr)
+                        sys.exit(1)
+
                     if not digest:
-                        raise SystemExit(
-                            "Unable to update target values file: IMPORTED_IMAGE_DIGEST is empty. "
-                            "The import step should set it via ##vso[task.setvariable]; "
-                            "confirm 'Resolve digest and import image' completed and re-run."
+                        fail(
+                            "Unable to update target values file | reason=IMPORTED_IMAGE_DIGEST_empty | "
+                            "fix=run pipeline from main after digest propagation fix; ensure 'Resolve digest and import image' succeeded."
                         )
 
                     # Match indented keys under `image:` (e.g. `  repository:`), not only column 0.
@@ -224,15 +230,15 @@ stages:
                                     f"No edit needed; {path} already has repository={repository} digest={digest}"
                                 )
                             else:
-                                raise SystemExit(
-                                    "Unable to update target values file (patterns did not match or replace). "
-                                    f"Expected repository={repository!r} digest={digest!r}; "
-                                    f"found repository={cur_repo!r} digest={cur_digest!r}."
+                                fail(
+                                    "Unable to update target values file | reason=pattern_noop_mismatch | "
+                                    f"path={path} | expected_repo={repository!r} expected_digest={digest!r} | "
+                                    f"found_repo={cur_repo!r} found_digest={cur_digest!r}"
                                 )
                         else:
-                            raise SystemExit(
-                                "Unable to update target values file (no repository/digest keys matched). "
-                                "Ensure YAML has `repository:` and `digest:` under `image:` (indented is fine)."
+                            fail(
+                                "Unable to update target values file | reason=no_repo_or_digest_key | "
+                                f"path={path} | need_indented_repository_and_digest_under_image_in_yaml"
                             )
                     else:
                         path.write_text(updated)
