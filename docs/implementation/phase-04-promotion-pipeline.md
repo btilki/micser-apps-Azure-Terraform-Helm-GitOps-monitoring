@@ -20,7 +20,7 @@ Use one reusable promotion template and environment-specific wrappers. Each run 
 2. In Azure DevOps, verify service connections and variable groups:
    - service connection can access source/target ACR
    - GitHub token is available for PR creation (secret **`GITHUB_TOKEN`** in `variable-group-for-microservices`)
-   - promotion YAML fixes ACR login servers / names in-repo; at queue time you pick **`service`** (and optional **`digest`**)
+   - promotion YAML fixes ACR login servers / names in-repo; at queue time you pick **`service`** (and optional **`digest`**). The **`digest`** parameter defaults to a single space so Azure DevOps does **not** show it as *Required*; leave that default (or clear the field) to read the digest from the source GitOps values file; paste `sha256:…` only when overriding.
 3. Use `pipelines/templates/promote-image.yml` as the single shared promotion logic (RBAC pre-check, `az acr import`, GitOps YAML edit, GitHub PR to `main`).
 4. Use wrapper pipelines (parameter **`service`** selects the owned workload; default `frontend`):
    - `pipelines/promote/promote-to-stage.yml`
