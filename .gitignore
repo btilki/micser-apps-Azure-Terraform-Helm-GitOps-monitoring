@@ -62,7 +62,5 @@ __pycache__/
 gitops/bootstrap/root-app.yaml
 
 # User-requested ignores
-docs/
-myfile.doc
 .azure-tmp/
 .azure/
