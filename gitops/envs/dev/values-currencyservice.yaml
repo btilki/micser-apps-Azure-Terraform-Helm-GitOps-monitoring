@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/currencyservice
-  digest: "sha256:bdbed665caa2b1afe72d01e2d5885587d543b2aaeb5587538d81921e7a777251"
+  digest: "sha256:0bfedc87d67ff7d452946df3bd9d728d4627180395a4d2f27f1a17e6839c35b5"
 
 service:
   port: 7000

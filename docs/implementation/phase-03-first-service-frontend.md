@@ -14,7 +14,7 @@
 
 3. **GitOps** — Add `gitops/apps/dev/frontend-dev.yaml` (Argo CD `Application`, `metadata.name: frontend-dev`) and `gitops/envs/dev/values-frontend.yaml` (dev ACR login server + placeholder digest).
 
-4. **Register app** — Add a child Application under `gitops/bootstrap/applications/` (or your app-of-apps) so the root sync picks up `frontend`.
+4. **Register app** — Add `gitops/apps/dev/frontend-dev.yaml`; the **`apps-dev`** umbrella (`gitops/bootstrap/applications/apps-dev.yaml`) syncs that directory so the root app picks it up.
 
 5. **Azure DevOps** — New pipeline from YAML: `pipelines/ci/frontend.yml` (create file): build image, run tests/lint, **Trivy**, push to **dev** ACR, output digest, script or task to open PR updating `gitops/envs/dev/values-frontend.yaml`. Configure **service connection** (ACR push, federated identity if used).
 
@@ -92,8 +92,8 @@ Use this as a concrete path from source code to a live HTTPS endpoint in `dev`.
 3. Put initial image settings in values file:
    - `repository: <dev-acr-login-server>/frontend`
    - `digest: sha256:<placeholder>`
-4. Register app under bootstrap path:
-   - add child app manifest in `gitops/bootstrap/applications/`
+4. Register for Argo CD (this repo’s pattern):
+   - add **`gitops/apps/dev/frontend-dev.yaml`** (and merge to `main`). The umbrella Application **`apps-dev`** in `gitops/bootstrap/applications/apps-dev.yaml` syncs the whole `gitops/apps/dev/` directory, so you normally **do not** add one file per service under `bootstrap/applications/`.
 
 ### 4) Add CI pipeline for frontend
 
@@ -233,6 +233,17 @@ Use this checklist if your setup matches this repository and Azure subscription.
    - If challenge reason shows `Identity not found`/`ManagedIdentityCredential authentication failed`, verify:
      - federated credential subject: `system:serviceaccount:cert-manager:cert-manager`
      - identity has `DNS Zone Contributor` on `biroltilki.art`
+     - optional but useful: `Reader` on resource group `rg-boutique-shared-weu` for the cert-manager UAMI (mirrors external-dns-style permissions).
+   - **After changing ClusterIssuer `managedIdentity.clientID`:** existing `Challenge` objects keep the **old** client ID in their spec. cert-manager then fails Azure auth with `AADSTS700016` for the **previous** app id, and finalizers can loop forever. Fix:
+     ```bash
+     kubectl get challenge -A -o json | jq -r '.items[] | select(.spec.solver.dns01.azureDNS.managedIdentity.clientID? == "<OLD_MI_CLIENT_ID>") | "\(.metadata.namespace) \(.metadata.name)"'
+     ```
+     For each row, clear finalizers and delete the stale challenge (TXT cleanup may fail for the old identity; you can remove stray `_acme-challenge.*` TXT records in the zone if needed):
+     ```bash
+     kubectl patch challenge -n <ns> <name> -p '{"metadata":{"finalizers":[]}}' --type=merge
+     kubectl delete challenge -n <ns> <name>
+     ```
+     Ingress-shim will recreate `Certificate` / challenges using the updated ClusterIssuer.
    - Re-check:
    ```bash
    kubectl get challenges.acme.cert-manager.io -A

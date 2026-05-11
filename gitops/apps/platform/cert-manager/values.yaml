@@ -14,7 +14,7 @@ serviceAccount:
   create: true
   name: cert-manager
   annotations:
-    azure.workload.identity/client-id: "8edf3025-3cb2-4d69-b9ef-01ecd53e1e91"
+    azure.workload.identity/client-id: "eeb80225-06f2-43c0-9068-a98e00518175"
   labels:
     azure.workload.identity/use: "true"
 

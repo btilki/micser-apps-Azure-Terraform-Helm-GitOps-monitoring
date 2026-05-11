@@ -10,19 +10,19 @@ Use one reusable promotion template and environment-specific wrappers. Each run 
 
 ## Step-by-step
 
-1. In Azure, verify promotion identity permissions:
-   - source ACR: `AcrPull`
-   - target ACR: `AcrPush`
+1. In Azure, verify promotion identity permissions (see **§1** for exact roles, including **Reader** on listed resource groups and **AcrPull+AcrPush** on stage ACR for dev→stage):
+   - source ACR: `AcrPull` (minimum)
+   - target ACR: `AcrPush` (and `AcrPull` on stage when promoting dev→stage, per wrapper)
    Check with:
    ```bash
    az role assignment list --assignee <PRINCIPAL_ID_OR_APP_ID> -o table
    ```
 2. In Azure DevOps, verify service connections and variable groups:
    - service connection can access source/target ACR
-   - GitHub token/connection is available for PR creation
-   - required variables are set (`SOURCE_ACR`, `TARGET_ACR`, service name, branch)
-3. Use `pipelines/templates/promote-image.yml` as the single shared promotion logic.
-4. Use wrapper pipelines:
+   - GitHub token is available for PR creation (secret **`GITHUB_TOKEN`** in `variable-group-for-microservices`)
+   - promotion YAML fixes ACR login servers / names in-repo; at queue time you pick **`service`** (and optional **`digest`**)
+3. Use `pipelines/templates/promote-image.yml` as the single shared promotion logic (RBAC pre-check, `az acr import`, GitOps YAML edit, GitHub PR to `main`).
+4. Use wrapper pipelines (parameter **`service`** selects the owned workload; default `frontend`):
    - `pipelines/promote/promote-to-stage.yml`
    - `pipelines/promote/promote-to-prod.yml`
 5. In Azure DevOps, configure environment approvals/checks:
@@ -50,7 +50,7 @@ Use one reusable promotion template and environment-specific wrappers. Each run 
 
 ## Detailed step-by-step guide (practical)
 
-Use this sequence for one service (example: `frontend`) and repeat for each owned service.
+Use this sequence for **`frontend`** first, then the same pipelines with **`service`** set to each **v1 owned** workload (`cartservice`, `currencyservice`, `productcatalogservice`, `redis-cart`) once dev/stage/prod values files exist. To onboard a **new** image name, add it to the `values:` list on both promote wrappers (same string as ACR repository and `gitops/envs/*/values-<service>.yaml` suffix).
 
 ### 0) Prerequisites
 
@@ -71,22 +71,27 @@ Use this sequence for one service (example: `frontend`) and repeat for each owne
 
 ### 1) Validate promotion identity permissions in Azure
 
-1. Resolve principal ID used by Azure DevOps promotion service connection:
-   ```bash
-   az ad sp list --display-name "promotion-azure-connection" --query "[0].id" -o tsv
-   ```
-   If your display name differs, use your real service principal/app registration.
-2. Verify role assignments:
+1. Resolve the **service principal** backing the Azure Resource Manager service connection (connection id/name in YAML: `promotion-azure-connection`). The connection **name in DevOps is not** the app’s Azure AD **display name**.
+   - **Azure DevOps:** Project settings → Service connections → `promotion-azure-connection` → **Manage Service Principal** (or “Azure Active Directory application”) to open the app registration and copy **Application (client) ID** or **Object ID**.
+   - **Azure CLI:** use **application (client) id** or enterprise app **object id** with `az ad sp show --id ...`. For a known **display name**, use `az ad sp list --display-name '<NAME>' --query '[0].{appId:appId,objectId:id}' -o yaml` instead.
+2. Verify role assignments (use **object id** or **app id** as supported by your CLI; object id is reliable for `az role assignment list`):
    ```bash
    az role assignment list --assignee <PRINCIPAL_ID_OR_APP_ID> -o table
    ```
-3. Minimum expected access:
-   - dev -> stage promotion:
-     - source dev ACR: `AcrPull`
-     - target stage ACR: `AcrPush`
-   - stage -> prod promotion:
-     - source stage ACR: `AcrPull`
-     - target prod ACR: `AcrPush`
+3. Minimum expected access (must match what `pipelines/templates/promote-image.yml` **pre-checks** via wrapper parameters):
+   - **Dev → stage** (`promote-to-stage.yml`):
+     - source **dev** ACR: `AcrPull`
+     - target **stage** ACR: `AcrPull` **and** `AcrPush` (both are validated)
+     - **Reader** on resource groups: `rg-boutique-stage-weu`, `rg-boutique-prod-weu` (used so `az group show` succeeds during validation)
+   - **Stage → prod** (`promote-to-prod.yml`):
+     - source **stage** ACR: `AcrPull`
+     - target **prod** ACR: `AcrPush`
+     - **Reader** on the same two resource groups (as in repo wrappers)
+
+### 1.1) Parameters when queuing a promotion
+
+- **`service`** — which owned workload to promote (must match ACR repository name and `values-<service>.yaml` under `gitops/envs/{dev,stage,prod}/`). Shipped options: `frontend`, `cartservice`, `currencyservice`, `productcatalogservice`, `redis-cart`.
+- **`digest`** (optional) — if empty, the template reads `digest:` from the **source** GitOps file for the chosen service (e.g. `gitops/envs/dev/values-<service>.yaml` for dev→stage). Set explicitly when `main` is not updated yet or you need an exact digest.
 
 ### 2) Validate Azure DevOps pipeline dependencies
 
@@ -108,15 +113,15 @@ Use this sequence for one service (example: `frontend`) and repeat for each owne
 2. Wrapper pipelines:
    - `pipelines/promote/promote-to-stage.yml`
    - `pipelines/promote/promote-to-prod.yml`
-3. Ensure wrappers pass required parameters:
-   - service name
-   - source registry
-   - target registry
-   - GitOps values path for target environment
+3. Wrapper parameters (at queue time in Azure DevOps):
+   - **`service`** — drives `imageName` and `gitops/envs/<env>/values-<service>.yaml` paths (see §1.1).
+   - Fixed in YAML: `sourceAcrLoginServer` / `targetAcrName` / `targetAcrLoginServer`, `githubRepository`, `azureSubscriptionConnection`, `requiredReaderResourceGroups` (see §1).
+
+Quick reference table: `pipelines/README.md` → **Promotion permissions control**.
 
 ### 4) Run stage promotion and verify PR
 
-1. Queue `pipelines/promote/promote-to-stage.yml` manually in Azure DevOps.
+1. Queue `pipelines/promote/promote-to-stage.yml` manually in Azure DevOps. Set **`service`** (and **`digest`** if needed).
 2. After success, open created GitHub PR and verify:
    - only `gitops/envs/stage/values-<service>.yaml` changed
    - image points to stage ACR
@@ -141,7 +146,7 @@ Use this sequence for one service (example: `frontend`) and repeat for each owne
 
 ### 6) Run prod promotion with approval gate
 
-1. Queue `pipelines/promote/promote-to-prod.yml`.
+1. Queue `pipelines/promote/promote-to-prod.yml` with the same **`service`** (and optional **`digest`**).
 2. Complete required Azure DevOps environment approval (`promote-prod`).
 3. Review generated GitHub PR:
    - only `gitops/envs/prod/values-<service>.yaml` changed
@@ -168,8 +173,14 @@ Use this sequence for one service (example: `frontend`) and repeat for each owne
 
 - PR not created:
   - validate `GITHUB_TOKEN` permissions and pipeline variable references.
+- **`Missing role 'Reader' on resource group`** during “Validate service principal role assignments”:
+  - grant **Reader** on each RG listed in `requiredReaderResourceGroups` in the promote wrapper (defaults include `rg-boutique-stage-weu`, `rg-boutique-prod-weu`).
+- **`Digest ... is still a placeholder` / invalid digest format**:
+  - merge a real digest into the **source** values file on `main`, or re-queue the pipeline with parameter **`digest`** set to `sha256:<64-hex>` from the source ACR manifest list.
+- **`Unable to locate digest in source values file`** or checkout step fails on missing path:
+  - confirm **`service`** matches an existing `gitops/envs/dev/values-<service>.yaml` (stage promotion) or `gitops/envs/stage/...` (prod promotion), and that the file contains a `digest:` line; add the service to the promote YAML `values:` list if you onboarded a new image name.
 - `az acr import` fails:
-  - validate source `AcrPull` and target `AcrPush` role assignments.
+  - validate source `AcrPull` and target roles (`AcrPush`, and `AcrPull` on stage target for dev→stage).
 - Wrong file modified in PR:
   - validate wrapper pipeline parameters and values file path.
 - Argo app out of sync after merge:

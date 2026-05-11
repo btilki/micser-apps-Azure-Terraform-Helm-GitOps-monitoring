@@ -33,6 +33,7 @@
 | **HTTP-01 blocked** | Fix DNS → LB, ingress **class**, firewall; ensure **nginx** serves challenges. |
 | **Rate limit / bad issuer config** | Check cert-manager logs; wait or use staging issuer for tests; fix **email/solver** settings on **ClusterIssuer**. |
 | **Certificate stuck** | `kubectl delete challenge ...` cautiously to retry; or delete and recreate **Certificate** if safe. |
+| **DNS-01 + rotated MI / `AADSTS700016` for an old app id** | **Challenge** specs snapshot `managedIdentity.clientID`. After changing the ClusterIssuer UAMI, stale challenges still authenticate as the old app. List mismatches with `kubectl get challenge -A -o json \| jq ...`, patch `metadata.finalizers` to `[]`, delete those challenges; see `docs/implementation/phase-03-first-service-frontend.md` (TLS troubleshooting). |
 | **Secret missing / wrong reference** | Align **ingress TLS secretName** in `gitops/envs/prod/values-*.yaml` with Certificate **secretName**; merge + Argo Sync. |
 | **Expiry imminent** | Force renewal: annotate Certificate `cert-manager.io/issue-temporary-certificate: "true"` only per cert-manager docs; prefer fixing ACME path first. |
 

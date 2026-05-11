@@ -3,6 +3,8 @@ kind: AppProject
 metadata:
   name: boutique-prod
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   description: Production environment project for boutique services
   sourceRepos:

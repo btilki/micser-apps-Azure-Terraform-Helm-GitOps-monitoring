@@ -3,7 +3,7 @@ image:
   digest: "sha256:a7ea6e5a8b398ef9070e29735ed546ca85f261846bc9101d90ce97f760791933"
 
 googleDemo:
-  enabled: true
+  enabled: false
   externalName: frontend.google-boutique.svc.cluster.local
 
 replicaCount: 2

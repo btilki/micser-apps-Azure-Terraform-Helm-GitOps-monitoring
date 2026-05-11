@@ -3,7 +3,7 @@
 | Path | Purpose |
 |------|---------|
 | `ci/` | One YAML pipeline per microservice (or shared entry with parameters) |
-| `promote/` | `promote-to-stage`, `promote-to-prod` (`az acr import` + GitOps PR) |
+| `promote/` | `promote-to-stage`, `promote-to-prod` — `service` + optional `digest`; `az acr import` + GitOps PR |
 | `templates/` | Reusable steps: build Go/.NET/Node, push ACR, Trivy, import image |
 
 ## Connect this repo in Azure DevOps
@@ -25,6 +25,11 @@ See `docs/cicd-pipeline-plan.md` and `docs/implementation/phase-03-first-service
 
 ## Promotion permissions control
 
-Promotion pipelines now enforce a pre-check for required Azure RBAC roles on the promotion service principal before image import and GitOps PR creation.
+Promotion pipelines enforce a pre-check (`pipelines/templates/promote-image.yml`) on the service principal used by **`promotion-azure-connection`** before `az acr import` and the GitHub PR step.
 
-For required role mappings (dev/stage/prod ACR + Reader scopes), see `README.md` section `Promotion SP role control`.
+| Pipeline | Source registry / roles | Target registry / roles | Reader (resource groups) |
+|----------|---------------------------|-------------------------|---------------------------|
+| `promote/promote-to-stage.yml` | `acrboutiquedevweu` — **AcrPull** | `acrboutiquestageweu` — **AcrPull**, **AcrPush** | `rg-boutique-stage-weu`, `rg-boutique-prod-weu` |
+| `promote/promote-to-prod.yml` | `acrboutiquestageweu` — **AcrPull** | `acrboutiqueprodweu` — **AcrPush** | same as stage row |
+
+To change scopes, edit `requiredSourceAcrRoles`, `requiredTargetAcrRoles`, and `requiredReaderResourceGroups` on each wrapper. Details: `docs/implementation/phase-04-promotion-pipeline.md`.
