@@ -18,10 +18,6 @@ data "terraform_remote_state" "shared" {
 
 data "azurerm_client_config" "current" {}
 
-data "azurerm_resource_group" "stage" {
-  name = "rg-boutique-stage-weu"
-}
-
 resource "azurerm_resource_group" "env" {
   name     = "rg-boutique-prod-weu"
   location = var.location
@@ -49,19 +45,7 @@ resource "azurerm_role_assignment" "promotion_prod_acr_push" {
   principal_id         = var.promotion_service_principal_object_id
 }
 
-resource "azurerm_role_assignment" "promotion_reader_stage_rg" {
-  count                = var.promotion_service_principal_object_id != "" ? 1 : 0
-  scope                = data.azurerm_resource_group.stage.id
-  role_definition_name = "Reader"
-  principal_id         = var.promotion_service_principal_object_id
-}
-
-resource "azurerm_role_assignment" "promotion_reader_prod_rg" {
-  count                = var.promotion_service_principal_object_id != "" ? 1 : 0
-  scope                = azurerm_resource_group.env.id
-  role_definition_name = "Reader"
-  principal_id         = var.promotion_service_principal_object_id
-}
+# Reader on stage + prod RGs is created in the stage stack only (same principal+scope is unique in Azure).
 
 module "keyvault" {
   source = "../../modules/keyvault"
