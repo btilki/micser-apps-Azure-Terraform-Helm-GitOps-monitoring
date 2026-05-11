@@ -4,6 +4,8 @@ Operational procedures for **boutique** prod and shared platform. Pair with [Pha
 
 | Runbook | Use when |
 |---------|----------|
+| [release-verification](./release-verification.md) | After a promotion PR merge; smoke + Argo + quick observability checks |
+| [grafana-dashboards](./grafana-dashboards.md) | Release monitoring; find capacity / ingress / pod / cert dashboards |
 | [prod-rollback](./prod-rollback.md) | Bad deploy in prod; revert GitOps digest/values and Sync |
 | [ingress-5xx-triage](./ingress-5xx-triage.md) | HTTP 5xx via ingress; LB/backend/controller issues |
 | [certificate-renewal-expiry](./certificate-renewal-expiry.md) | TLS errors; cert-manager / ACME / expiry |

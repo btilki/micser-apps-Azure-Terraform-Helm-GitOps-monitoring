@@ -3,7 +3,7 @@
 | Path | Purpose |
 |------|---------|
 | `ci/` | One YAML pipeline per microservice (or shared entry with parameters) |
-| `promote/` | `promote-to-stage`, `promote-to-prod` — `service` + optional `digest`; `az acr import` + GitOps PR |
+| `promote/` | `promote-to-stage`, `promote-to-prod` — `service` + optional `digest`; `az acr import` + GitOps PR + **HTTP smoke** (`scripts/smoke.sh`) when `smokeBaseUrl` is set |
 | `templates/` | Reusable steps: build Go/.NET/Node, push ACR, Trivy, import image |
 
 ## Connect this repo in Azure DevOps

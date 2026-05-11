@@ -46,3 +46,4 @@ extends:
     requiredTargetAcrRoles: AcrPush
     requiredReaderResourceGroups: rg-boutique-stage-weu,rg-boutique-prod-weu
     digest: ${{ parameters.digest }}
+    smokeBaseUrl: 'https://boutique.biroltilki.art'

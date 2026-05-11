@@ -39,6 +39,11 @@ parameters:
   - name: digest
     type: string
     default: ''
+  # Optional storefront URL for scripts/smoke.sh after GitOps file update (Phase 9).
+  # Leave empty to skip smoke. New image may not be live until PR merge + Argo sync.
+  - name: smokeBaseUrl
+    type: string
+    default: ''
 
 stages:
   - stage: ${{ parameters.stageName }}
@@ -245,6 +250,15 @@ stages:
                         print(f"Updated {path} with repository={repository} digest={digest}")
                     PY
                   displayName: Update GitOps values
+
+                - script: |
+                    set -euo pipefail
+                    echo "##[section]Smoke test (target storefront)"
+                    echo "Note: Cluster may still serve the previous digest until the promotion PR merges and Argo CD syncs."
+                    bash scripts/smoke.sh --url "${{ parameters.smokeBaseUrl }}"
+                    echo "##[section]Smoke test finished"
+                  displayName: Smoke test storefront (HTTP 200)
+                  condition: and(succeeded(), ne('${{ parameters.smokeBaseUrl }}', ''))
 
                 - script: |
                     set -euo pipefail

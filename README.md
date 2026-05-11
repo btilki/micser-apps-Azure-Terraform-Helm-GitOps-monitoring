@@ -61,11 +61,19 @@ Current repository pipelines are aligned to the following Azure DevOps names:
 
 See `pipelines/README.md` for pipeline-specific details.
 
+## Release flow (concise)
+
+1. **CI** (`pipelines/ci/*.yml`) builds, scans (Trivy), pushes to **dev ACR**, and may open a PR to bump the dev image digest in GitOps.
+2. **Promote to stage** (`pipelines/promote/promote-to-stage.yml`): pick `service`, optional digest override → `az acr import` dev→stage ACR → update `gitops/envs/stage/values-*.yaml` → **smoke test** stage storefront → open GitHub PR to `main`.
+3. Merge the PR → **Argo CD** syncs stage workloads.
+4. **Promote to prod** (`pipelines/promote/promote-to-prod.yml`): same pattern from stage→prod with approvals on the `promote-prod` environment.
+5. Post-merge checks: [docs/runbooks/release-verification.md](docs/runbooks/release-verification.md).
+
 ## Operations quickstart
 
 - Argo CD UI: `https://argocd.biroltilki.art`
 - Grafana UI: `https://grafana.biroltilki.art`
-- Runbooks index: [docs/runbooks/README.md](docs/runbooks/README.md)
+- Runbooks index: [docs/runbooks/README.md](docs/runbooks/README.md) (includes [release verification](docs/runbooks/release-verification.md) and [Grafana dashboards](docs/runbooks/grafana-dashboards.md))
 - Core runbooks:
   - [Prod rollback](docs/runbooks/prod-rollback.md)
   - [Ingress 5xx triage](docs/runbooks/ingress-5xx-triage.md)
