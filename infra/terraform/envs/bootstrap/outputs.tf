@@ -14,3 +14,8 @@ output "container_names" {
     prod   = azurerm_storage_container.prod.name
   }
 }
+
+output "subscription_budget_id" {
+  value       = try(azurerm_consumption_budget_subscription.monthly[0].id, null)
+  description = "Set when enable_subscription_budget is true and notification emails are configured."
+}

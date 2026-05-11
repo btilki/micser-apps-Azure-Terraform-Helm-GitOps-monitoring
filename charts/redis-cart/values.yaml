@@ -28,3 +28,19 @@ nodeSelector: {}
 tolerations: []
 
 priorityClassName: ""
+
+# Official redis image runs as uid 999 / gid 1000 (redis group on alpine).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
