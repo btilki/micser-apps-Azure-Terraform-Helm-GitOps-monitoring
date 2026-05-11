@@ -179,10 +179,12 @@ Quick reference table: `pipelines/README.md` → **Promotion permissions control
   - grant **Reader** on each RG listed in `requiredReaderResourceGroups` in the promote wrapper (defaults include `rg-boutique-stage-weu`, `rg-boutique-prod-weu`).
 - **`Digest ... is still a placeholder` / invalid digest format**:
   - merge a real digest into the **source** values file on `main`, or re-queue the pipeline with parameter **`digest`** set to `sha256:<64-hex>` from the source ACR manifest list.
+  - if **`Digest format is invalid`** shows a long blob of timestamps and `##[section]`, you pasted **pipeline log output** into the **`digest`** parameter; leave **`digest` empty** (read from GitOps) or paste **only** `sha256:` + 64 hex characters, one line.
 - **`Unable to locate digest in source values file`** or checkout step fails on missing path:
   - confirm **`service`** matches an existing `gitops/envs/dev/values-<service>.yaml` (stage promotion) or `gitops/envs/stage/...` (prod promotion), and that the file contains a `digest:` line; add the service to the promote YAML `values:` list if you onboarded a new image name.
 - **`Unable to update target values file`** (Update GitOps values step):
   - the promotion template must match **`repository:`** and **`digest:`** lines even when indented under **`image:`** (e.g. two leading spaces). Older template versions only matched column 0; use current `pipelines/templates/promote-image.yml` or align the YAML to the expected shape.
+  - if the log adds **Expected repository=… found repository=…** and they already match, refresh `main`—current template treats **already correct** target files as a no-op instead of failing.
 - `az acr import` fails:
   - validate source `AcrPull` and target roles (`AcrPush`, and `AcrPull` on stage target for dev→stage).
 - Wrong file modified in PR:
