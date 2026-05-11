@@ -2,24 +2,40 @@
 
 [← Phase 4](phase-04-promotion-pipeline.md) · [Index](README.md) · [Phase 6 →](phase-06-stage-environment.md)
 
-**Goal:** Complete **v1** application coverage in `dev`: all **owned** services use this repo’s CI/GitOps; the **rest of the boutique path** uses **upstream Google** images.
+**Goal:** Complete **v1** application coverage in `dev`: all **owned** services use this repo’s CI/GitOps; the **rest of the boutique path** can use **upstream Google** images when you choose to wire them in.
 
 ## v1 scope (explicit)
 
-- **Owned here (v1 = 5 workloads: 4 services + Redis):** `frontend`, `cartservice`, `currencyservice`, `productcatalogservice`, `redis-cart` — each has a chart under `charts/`; values under `gitops/envs/*/`, and CI under `pipelines/ci/` where applicable.
-- **Upstream Google (5 + loadgen):** `checkoutservice`, `emailservice`, `paymentservice`, `shippingservice`, `recommendationservice`, and `loadgenerator` — run from published microservices-demo images (not promoted through this repo’s service pipelines). **`adservice`** is optional / later for v1.
+- **Owned here (v1 = 5 workloads: 4 services + Redis):** `frontend`, `cartservice`, `currencyservice`, `productcatalogservice`, `redis-cart` — each has a chart under `charts/<service>/`, values under `gitops/envs/{dev,stage,prod}/values-<service>.yaml`, CI under `pipelines/ci/<service>.yml`, and promotion is covered by the **`service`** parameter on `pipelines/promote/promote-to-*.yml` (see Phase 4).
+- **Upstream Google (5 + loadgen):** `checkoutservice`, `emailservice`, `paymentservice`, `shippingservice`, `recommendationservice`, and `loadgenerator` — typically run from published microservices-demo images (not built by this repo’s service CI). **`adservice`** is optional / later for v1.
+
+## This repository (already scaffolded)
+
+For the five **owned** workloads, the following already exist unless you intentionally removed them:
+
+| Service | Chart | Dev Application | CI pipeline |
+|---------|--------|-----------------|-------------|
+| `frontend` | `charts/frontend` | `gitops/apps/dev/frontend-dev.yaml` | `pipelines/ci/frontend.yml` |
+| `redis-cart` | `charts/redis-cart` | `gitops/apps/dev/redis-cart-dev.yaml` | `pipelines/ci/redis-cart.yml` |
+| `productcatalogservice` | `charts/productcatalogservice` | `gitops/apps/dev/productcatalogservice-dev.yaml` | `pipelines/ci/productcatalogservice.yml` |
+| `currencyservice` | `charts/currencyservice` | `gitops/apps/dev/currencyservice-dev.yaml` | `pipelines/ci/currencyservice.yml` |
+| `cartservice` | `charts/cartservice` | `gitops/apps/dev/cartservice-dev.yaml` | `pipelines/ci/cartservice.yml` |
+
+**Argo CD wiring:** `gitops/bootstrap/applications/apps-dev.yaml` defines Application **`apps-dev`**, which syncs the **directory** `gitops/apps/dev/` into the `argocd` namespace. Any new `*-dev.yaml` Application manifest dropped in that folder is picked up automatically — you do **not** add one file per microservice under `gitops/bootstrap/applications/` for dev.
+
+**Stage / prod:** `apps-stage.yaml` and `apps-prod.yaml` sync `gitops/apps/stage/` and `gitops/apps/prod/` respectively. Manifest names there differ (e.g. `cartservice.yaml`, metadata `name: cartservice-stage`); see existing files for the pattern.
+
+**Platform baseline:** Application **`platform-dev`** syncs `gitops/platform/dev/` (`namespace.yaml`, `networkpolicy-baseline.yaml`, etc.).
 
 ## Process (brief)
 
-For **owned** services, repeat the frontend pattern: chart → env values → Argo app → CI digest PR. Deploy **upstream** workloads from Google’s manifests or Helm when you need a full end-to-end demo. Roll out in small batches and validate service-to-service traffic.
-
-**Dev baseline:** `gitops/platform/dev/` (Application **`platform-dev`**) applies `namespace.yaml` and **`networkpolicy-baseline.yaml`** (same ingress posture as stage/prod: in-namespace + `ingress-nginx`).
+For **owned** services: ensure real digests in GitOps (via CI or manual), run pipelines, merge PRs, validate pods. Replace placeholder Dockerfiles under `apps/<service>/` with real service builds when you are ready. For **upstream** demo paths: add Argo `Application` manifests + values (or a parent chart) when you need a full Google demo topology.
 
 ## Step-by-step
 
 ### Prerequisites
 
-1. Confirm Phase 4 promotion flow works for `frontend`.
+1. Confirm Phase 4 promotion flow works for at least one owned service (e.g. `frontend`) using `pipelines/promote/promote-to-stage.yml` / `promote-to-prod.yml` and the **`service`** parameter.
 2. Confirm `dev` namespace and Argo root app are healthy:
    ```bash
    kubectl get ns dev
@@ -28,7 +44,7 @@ For **owned** services, repeat the frontend pattern: chart → env values → Ar
 
 ### Azure
 
-3. Confirm dev ACR is reachable and contains existing promoted images:
+3. Confirm dev ACR is reachable and repositories exist (or will exist after first CI push):
    ```bash
    az acr list -o table
    az acr repository list --name acrboutiquedevweu -o table
@@ -36,52 +52,54 @@ For **owned** services, repeat the frontend pattern: chart → env values → Ar
 
 ### Azure DevOps
 
-4. For each **owned** service, create or verify CI pipeline:
-   - `pipelines/ci/<service>.yml` (or shared template reference)
-   - stages: build -> scan -> push dev ACR -> update GitOps digest -> open PR
-5. Validate service connections and secrets:
-   - ACR push permission on dev ACR
-   - `GITHUB_TOKEN` (or equivalent) for PR creation
+4. For each **owned** service, **register** the CI pipeline in Azure DevOps (if not already): `pipelines/ci/<service>.yml`.
+5. Pipeline shape (see `frontend` as reference): checkout → build → Trivy → push **dev** ACR → update `gitops/envs/dev/values-<service>.yaml` digest → open GitHub PR.
+6. Validate service connections and secrets:
+   - ARM service connection (e.g. `promotion-azure-connection`) can push to dev ACR
+   - `GITHUB_TOKEN` in `variable-group-for-microservices` for PR creation
 
 ### GitHub / GitOps
 
-6. Define rollout order for **owned** services (recommended):
+7. Recommended rollout order (dependencies first):
    - `redis-cart`
    - `productcatalogservice`, `currencyservice`, `cartservice`
-7. Deploy **upstream** slice when needed for full journeys:
+   - `frontend` (often already live from Phase 3)
+8. Deploy **upstream** slice when you need full boutique journeys:
    - `checkoutservice`, `emailservice`, `paymentservice`, `shippingservice`, `recommendationservice`
    - `loadgenerator` (non-prod only)
-   - omit `adservice` in v1 unless needed
-8. For each **owned** service, maintain repo structure:
+   - omit `adservice` in v1 unless needed  
+   You will add Argo Applications + values (or reuse upstream Helm/manifests); not all are pre-created in this repo.
+9. For each **owned** service, repo layout to preserve:
    - Helm chart: `charts/<service>/`
-   - Argo app: `gitops/apps/dev/<service>-dev.yaml`
-   - values: `gitops/envs/dev/values-<service>.yaml`
-9. Ensure each **owned** service is registered in `gitops/bootstrap/applications/`.
-10. Run CI and review/merge digest PRs in small batches (2-3 services per wave).
+   - Argo Application (dev): `gitops/apps/dev/<service>-dev.yaml` (`metadata.name` usually `<service>-dev`)
+   - Values: `gitops/envs/dev/values-<service>.yaml` (and stage/prod counterparts for promotion)
+10. **Do not** duplicate dev app registration under `gitops/bootstrap/applications/` per service — keep the single **`apps-dev`** umbrella unless you change GitOps design.
+11. Run CI and review/merge digest PRs in small batches (2–3 services per wave).
 
 ### Argo CD / Kubernetes validation
 
-11. After each PR batch merge, verify deployment health:
+12. After each PR batch merge:
     ```bash
     kubectl get applications -n argocd
     kubectl get pods -n dev
     kubectl get svc -n dev
     ```
-12. Validate service-to-service traffic with a debug pod when needed.
-13. Keep only `frontend` (or ingress entrypoint) exposed publicly in this phase.
-14. Keep `loadgenerator` on upstream images and disabled in prod.
+13. Validate service-to-service traffic with a debug pod or port-forward when needed.
+14. Keep only **`frontend`** (ingress entrypoint) publicly exposed in this phase unless you intentionally add more ingresses.
+15. Keep **`loadgenerator`** on upstream images and out of prod unless policy allows.
 
 ### Troubleshooting
 
-- PR not created:
-  - check Azure DevOps token permissions and branch protection requirements.
-- Pods fail with image pull errors:
-  - verify repository path and digest in `gitops/envs/dev/values-<service>.yaml`.
-- Argo app stays OutOfSync:
-  - verify chart path and values file reference in `gitops/apps/dev/<service>-dev.yaml`.
+- **PR not created:** check `GITHUB_TOKEN` scopes (`repo`), branch protection, and CI logs for the GitHub API step.
+- **ImagePullBackOff / 401:** confirm digest exists in **dev** ACR and `az aks update ... --attach-acr acrboutiquedevweu` (or equivalent AcrPull) for the cluster.
+- **InvalidImageName / placeholder digest:** merge the CI GitOps PR or set a real `sha256:...` in `gitops/envs/dev/values-<service>.yaml`.
+- **Argo `OutOfSync` / chart not found:** verify `spec.source.path` in `gitops/apps/dev/<service>-dev.yaml` matches `charts/<service>` and `helm.valueFiles` points at `../../gitops/envs/dev/values-<service>.yaml` (path is relative to the chart directory).
+- **`apps-dev` missing child:** ensure `boutique-root` (or your root Application) syncs `gitops/bootstrap/applications` and that `apps-dev.yaml` is present and committed.
 
 ## Done checklist
 
-- Core services are deployed and healthy in `dev`.
-- Images are pinned by digest in GitOps values.
-- End-to-end storefront flow works in `dev`.
+- [ ] All five owned `Application`s under **`apps-dev`** show **Healthy** / **Synced** (or acceptable progressing state).
+- [ ] `kubectl get pods -n dev` shows **Ready** pods for owned releases you care about this phase.
+- [ ] `gitops/envs/dev/values-*.yaml` for owned services use **immutable digests**, not placeholders, for images you intend to run.
+- [ ] Optional: run `frontend` smoke test (`curl` / browser) toward `dev` ingress hostname.
+- [ ] Optional: promote one non-frontend service through Phase 4 pipelines to validate **`service`** end-to-end.

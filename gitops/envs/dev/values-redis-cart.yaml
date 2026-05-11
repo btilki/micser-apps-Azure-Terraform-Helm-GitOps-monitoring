@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/redis-cart
-  digest: "sha256:f337cad04ce49504acde20d4286a29e28d595b7fa61d16c0afac0a5190e4ebd1"
+  digest: "sha256:0aa25a64109156776af06fef7155875855a45ddf7ecac3a91f8f40431cc09f91"
 
 service:
   port: 6379

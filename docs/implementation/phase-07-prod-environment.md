@@ -4,6 +4,18 @@
 
 **Goal:** Prod GitOps, **manual** Argo CD sync for prod, alerts, short runbooks.
 
+## This repository (already scaffolded)
+
+| Area | Path / resource |
+|------|------------------|
+| **Platform** (`prod` namespace, quota, limits, **NetworkPolicy**, optional **PriorityClass**) | `gitops/platform/prod/` — Application **`platform-prod`** (`gitops/bootstrap/applications/platform-prod.yaml`), **`spec.project: boutique-prod`**, sync-wave **`1`** so it runs after **`apps-prod`**. |
+| **AppProject + prod workloads** | `gitops/apps/prod/*.yaml` — Application **`apps-prod`** (`gitops/bootstrap/applications/apps-prod.yaml`), sync-wave **`0`**. **`project-boutique-prod.yaml`** uses **`argocd.argoproj.io/sync-wave: "-1"`** so **`boutique-prod`** exists before child `Application`s. |
+| **Helm values** | `gitops/envs/prod/values-<service>.yaml` — **`acrboutiqueprodweu.azurecr.io/...`** + **`digest`**. **`googleDemo.enabled: false`** on frontend (real image). |
+| **Promotion** | `pipelines/promote/promote-to-prod.yml` + **`service`** / optional **`digest`** (Phase 4). |
+| **Rollback digest log** | [prod-known-good-digests.md](../gitops/prod-known-good-digests.md) — update after each good prod release. |
+
+**Manual sync:** Prod `Application` manifests omit **`syncPolicy.automated`** (only **`syncOptions: [CreateNamespace=true]`**), so Argo does **not** auto-reconcile prod workloads when Git changes until an operator **Sync**s each app (or uses CLI/UI bulk sync).
+
 ## Process (brief)
 
 > **Use:** **Argo CD** (projects, sync policy manual, RBAC), **Git** (strict PR rules for `gitops/envs/prod/**`), **Helm values**, **Alertmanager** config (YAML + reload), **Grafana** UI optional, `docs/runbooks/`.
@@ -23,11 +35,11 @@
 This phase creates a controlled production path with human approvals and explicit sync actions.
 
 Section map for this phase:
-- `0-1`: prerequisites and Azure runtime readiness
-- `2-5`: GitHub/GitOps and Argo CD project/app setup
-- `6-9`: GitHub protections and Azure DevOps promotion flow
-- `10-11`: Argo sync and Kubernetes/runtime verification
-- `12`: rollback procedure and operations readiness
+- **§0–§1:** prerequisites and prod platform / namespace
+- **§2–§5:** Argo CD `AppProject`, bootstrap, manual sync policy, prod apps/values
+- **§6–§9:** GitHub protections, Alertmanager, runbooks, promote-to-prod
+- **§10–§12:** manual Argo sync, post-release checks, rollback
+- **§13–§14:** troubleshooting, definition of done
 
 ### 0) Pre-checks before enabling prod
 
@@ -37,10 +49,15 @@ Section map for this phase:
    kubectl get ns
    az acr list -o table
    ```
-3. Confirm promote pipeline for prod is configured with approvals:
+3. **ACR pull on AKS** (same cluster as dev/stage; prod registry is separate):
+   ```bash
+   az aks update -g rg-boutique-shared-weu -n aks-boutique-weu --attach-acr acrboutiqueprodweu
+   ```
+   Adjust names if yours differ. Without **AcrPull** on prod ACR, pods stay **ImagePullBackOff** even when GitOps is correct.
+4. Confirm promote pipeline for prod is configured with approvals:
    - `pipelines/promote/promote-to-prod.yml`
-4. Confirm **DNS** and **TLS** for prod hostnames (GitOps does not create public DNS records):
-   - **DNS target:** Each prod hostname (see step 5) must resolve to the **nginx ingress** front door for the cluster where **`prod`** workloads run—same idea as stage. In your DNS provider, point the name at the ingress controller **Service** `LoadBalancer`:
+5. Confirm **DNS** and **TLS** for prod hostnames (GitOps does not create public DNS records):
+   - **DNS target:** Each prod hostname (see **§5** below) must resolve to the **nginx ingress** front door for the cluster where **`prod`** workloads run—same idea as stage. In your DNS provider, point the name at the ingress controller **Service** `LoadBalancer`:
      - **A** / **AAAA** record(s) to the published **IP** address(es), or
      - **CNAME** to the cloud **FQDN** of that load balancer (for an apex host, use your provider’s **ALIAS/ANAME** if CNAME is not allowed).
    - **Discover the target** once the ingress controller is up and has an external IP or hostname, for example:
@@ -48,18 +65,18 @@ Section map for this phase:
      kubectl get svc -A | grep -i ingress
      ```
      (Use the namespace and Service name for your install—often `ingress-nginx` / `ingress-nginx-controller`.)
-   - **Certificates:** Prod Helm values use **cert-manager** via the ingress annotation `cert-manager.io/cluster-issuer: letsencrypt-prod`. Ensure a **ClusterIssuer** named **`letsencrypt-prod`** exists in the cluster. **HTTP-01** must succeed, so **port 80** on each hostname must reach the ingress from the public internet. After deploy, verify with `kubectl get certificate -n prod` (and `kubectl describe certificate` if not Ready).
+   - **Certificates:** Prod Helm values use **cert-manager** via `cert-manager.io/cluster-issuer: letsencrypt-prod`. This repo uses **DNS-01** (Azure DNS) on **`letsencrypt-prod`**, not HTTP-01—ensure DNS for the hostname resolves to the ingress LB and cert-manager challenges succeed. After deploy, verify with `kubectl get certificate -n prod` (and `kubectl describe certificate` if not Ready).
 
 Do not proceed if stage is unstable.
 
 ### 1) Create prod namespace + baseline guardrails
 
-1. Create namespace:
+1. **Preferred:** Let **`platform-prod`** create the namespace from GitOps (`gitops/platform/prod/namespace.yaml`) after you **Sync** that app (see **§3**). Optional one-off:
    ```bash
    kubectl create ns prod --dry-run=client -o yaml | kubectl apply -f -
    kubectl get ns prod
    ```
-2. Add baseline manifests for `prod` (see `gitops/platform/prod/`):
+2. Baseline manifests for `prod` live under `gitops/platform/prod/`:
    - `ResourceQuota` — `resourcequota.yaml`
    - `LimitRange` — `limitrange.yaml`
    - default `NetworkPolicy` — `networkpolicy-baseline.yaml` (ingress only from `prod` + `ingress-nginx`; adjust if your controller namespace differs)
@@ -68,15 +85,13 @@ Do not proceed if stage is unstable.
 
 ### 2) Create Argo CD AppProject for prod
 
-Create `boutique-prod` AppProject manifest with:
-- source repo restriction to your mono-repo
-- destination restriction to `prod` namespace only
-- optional deny-list for dangerous cluster-scoped resources
+The **`boutique-prod`** `AppProject` is defined in **`gitops/apps/prod/project-boutique-prod.yaml`** (repo allow-list, **`prod`** destination only, cluster-scoped allow/deny lists). It is applied when **`apps-prod`** syncs (same directory), with **`sync-wave: "-1"`** so it precedes child `Application`s.
 
-Apply and verify:
+Optional emergency apply (if `apps-prod` is not wired yet):
+
 ```bash
 kubectl apply -n argocd -f gitops/apps/prod/project-boutique-prod.yaml
-kubectl get appproject -n argocd
+kubectl get appproject boutique-prod -n argocd
 ```
 
 ### 3) Register prod in bootstrap/app-of-apps
@@ -93,17 +108,17 @@ kubectl get applications -n argocd
 
 ### 4) Enforce manual sync for prod apps
 
-For each prod `Application`:
-- set `project: boutique-prod`
-- remove/disable automated sync policy (`automated`) so sync is operator-triggered
-- keep self-heal/prune behavior aligned with your change control policy
+In **this** repo, each prod child `Application` under `gitops/apps/prod/` already uses **`project: boutique-prod`** and **does not** set **`syncPolicy.automated`** (only **`syncOptions: [CreateNamespace=true]`**), so **Git changes do not roll out until an operator Syncs** the app in Argo CD.
 
-Verify with:
+If you fork and add **`automated`**, remove it for prod (or use a separate non-prod project) to keep the manual gate from **§10**.
+
+Verify nothing snuck in:
+
 ```bash
-kubectl get applications -n argocd -o yaml | grep -n "prod\\|syncPolicy"
+kubectl get applications -n argocd -o yaml | grep -n automated || true
 ```
 
-Expected: prod apps require manual Sync in Argo CD UI/CLI.
+Interpretation: prod workload `Application`s in this repo should not list **`automated:`**; you may still see it on **other** Argo apps (e.g. dev/stage). Inspect `kubectl get application <name> -n argocd -o yaml` if unsure.
 
 ### 5) Create prod service manifests and values
 
@@ -119,13 +134,14 @@ Prod-specific values:
 - PodDisruptionBudget for critical services
 - `nodeSelector` / `tolerations` for prod pool
 - `loadgenerator.enabled: false`
+- **Frontend:** `googleDemo.enabled: false` when serving the real image from **prod** ACR (if `true`, the chart can point at an `ExternalName` for Google’s demo and return **503**—same as dev/stage; see Phase 3 / Phase 6 docs).
 
 Ingress host for the storefront should be prod-specific (for this repo convention):
 - frontend: `boutique.biroltilki.art`
 
 (There is no separate “API” ingress in the upstream Online Boutique model; gRPC services are internal `ClusterIP`.)
 
-Point this hostname at your prod ingress **LoadBalancer** and ensure **`letsencrypt-prod`** + HTTP-01 work as described in **step 0.4**.
+Point this hostname at your prod ingress **LoadBalancer** and ensure **`letsencrypt-prod`** (DNS-01) works as described in **step 0.4**.
 
 Start with services that already have charts in this repo (`frontend`, `redis-cart`, `productcatalogservice`, `currencyservice`, `cartservice`) to avoid Unknown sync status from missing chart paths.
 
@@ -194,12 +210,12 @@ Each includes: **symptoms**, **immediate checks**, **rollback/mitigation**, **ow
 
 **Pipelines (Azure DevOps, manual run):**
 
-| Service | YAML |
-|---------|------|
-| Frontend | `pipelines/promote/promote-to-prod.yml` |
+| YAML | Parameters |
+|------|------------|
+| `pipelines/promote/promote-to-prod.yml` | **`service`** — owned workload (`frontend`, `cartservice`, …). **`digest`** — optional; leave empty to read digest from **`gitops/envs/stage/values-<service>.yaml`** on the checked-out branch. |
 
-1. **Queue** the pipeline on `main` (or the branch your GitOps repo uses). Approve the **`promote-prod`** environment when prompted.
-2. **Optional parameter:** **Digest to promote** — leave empty to read digest from **stage** values on the checked-out branch; or set full `sha256:…` if stage Git is not updated yet.
+1. **Queue** the pipeline on `main` (or the branch your GitOps repo uses). Choose **`service`**, then approve the **`promote-prod`** environment when prompted.
+2. **Optional `digest`** — set full `sha256:…` if stage Git on that branch is not updated yet.
 3. When the pipeline opens the GitHub PR, **review**:
    - Only **`gitops/envs/prod/values-<service>.yaml`** (or equivalent path) should change.
    - **`image.digest`**: full **`sha256:`** (64 hex chars), not a placeholder.
@@ -211,13 +227,14 @@ Each includes: **symptoms**, **immediate checks**, **rollback/mitigation**, **ow
 Verify the digest exists in prod ACR after import (requires `az login` and registry access):
 
 ```bash
+SERVICE=frontend   # or cartservice, currencyservice, ...
 az acr manifest list-metadata \
   --registry acrboutiqueprodweu \
-  --name frontend \
+  --name "$SERVICE" \
   -o table
 ```
 
-Confirm the **digest** column matches **`gitops/envs/prod/values-frontend.yaml`** on `main` after merge (repeat for other owned services you promote the same way).
+Confirm the **digest** column matches **`gitops/envs/prod/values-<service>.yaml`** on `main` after merge.
 
 5. Continue to **§10 Manual Argo CD sync** — prod apps do not auto-sync.
 
@@ -285,7 +302,15 @@ If release is bad:
 
 **Keep previous known-good digest documented** for fast rollback: maintain **`docs/gitops/prod-known-good-digests.md`** (or your wiki) after each good prod ship — **do not** rely only on memory or Git archaeology during an incident.
 
-### 13) Definition of done for Phase 7
+### 13) Troubleshooting (prod)
+
+- **Git merged but cluster unchanged:** prod workload apps are **manual sync** — **Sync** each affected **`Application`** in Argo CD. If you changed **Application** YAML under `gitops/apps/prod/`, **Sync `apps-prod`** first so Argo picks up the new specs, then **Sync** the child (e.g. `frontend-prod`).
+- **`Unknown project boutique-prod`:** sync **`apps-prod`** first; confirm `AppProject` exists (`kubectl get appproject boutique-prod -n argocd`). Bootstrap uses **sync-waves** so **`apps-prod`** (wave `0`) applies before **`platform-prod`** (wave `1`).
+- **ImagePullBackOff:** run **`az aks update ... --attach-acr acrboutiqueprodweu`**; confirm **`image.repository`** is prod ACR and **digest** exists in that registry.
+- **HTTPS 503 with Healthy Argo:** check **`googleDemo.enabled`** on frontend prod values (must be **`false`** for the real image).
+- **TLS stuck:** DNS for **`boutique.biroltilki.art`** (or your host) → ingress LB; `kubectl get certificate,challenge -n prod`; stale **`Challenge`** specs after MI rotation — see Phase 3 / [certificate runbook](../runbooks/certificate-renewal-expiry.md).
+
+### 14) Definition of done for Phase 7
 
 - Prod apps are managed via GitOps with `boutique-prod` project controls.
 - Prod deployment requires both PR approval and manual sync action.
