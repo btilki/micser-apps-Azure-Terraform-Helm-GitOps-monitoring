@@ -34,7 +34,8 @@ module "acr" {
   pe_subnet_id                  = data.terraform_remote_state.shared.outputs.pe_subnet_id
   private_dns_zone_acr_id       = data.terraform_remote_state.shared.outputs.private_dns_zone_acr_id
   kubelet_object_id             = data.terraform_remote_state.shared.outputs.kubelet_identity_object_id
-  public_network_access_enabled = false
+  # Match stage/dev for operator/CI access to registry data-plane (private endpoint remains).
+  public_network_access_enabled = true
 }
 
 module "keyvault" {
