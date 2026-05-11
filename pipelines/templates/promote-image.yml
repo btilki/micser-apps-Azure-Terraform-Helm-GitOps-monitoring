@@ -196,10 +196,37 @@ stages:
                     )
 
                     if updated == content:
-                        raise SystemExit("Unable to update target values file.")
-
-                    path.write_text(updated)
-                    print(f"Updated {path} with repository={repository} digest={digest}")
+                        m_repo = re.search(
+                            r"^(\s*)repository:\s*\"?([^\"\n]+)\"?",
+                            content,
+                            flags=re.MULTILINE,
+                        )
+                        m_digest = re.search(
+                            r"^(\s*)digest:\s*\"?([^\"\n]+)\"?",
+                            content,
+                            flags=re.MULTILINE,
+                        )
+                        if m_repo and m_digest:
+                            cur_repo = m_repo.group(2).strip().strip('"')
+                            cur_digest = m_digest.group(2).strip().strip('"')
+                            if cur_repo == repository and cur_digest == digest:
+                                print(
+                                    f"No edit needed; {path} already has repository={repository} digest={digest}"
+                                )
+                            else:
+                                raise SystemExit(
+                                    "Unable to update target values file (patterns did not match or replace). "
+                                    f"Expected repository={repository!r} digest={digest!r}; "
+                                    f"found repository={cur_repo!r} digest={cur_digest!r}."
+                                )
+                        else:
+                            raise SystemExit(
+                                "Unable to update target values file (no repository/digest keys matched). "
+                                "Ensure YAML has `repository:` and `digest:` under `image:` (indented is fine)."
+                            )
+                    else:
+                        path.write_text(updated)
+                        print(f"Updated {path} with repository={repository} digest={digest}")
                     PY
                   displayName: Update GitOps values
 
