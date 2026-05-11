@@ -39,5 +39,5 @@ variable "shared_state_key" {
 variable "promotion_service_principal_object_id" {
   type        = string
   default     = ""
-  description = "Optional. Promotion pipeline SP object ID: AcrPush on prod ACR; Reader on stage+prod RGs (promote pre-checks)."
+  description = "Optional. Promotion SP object ID: AcrPush on prod ACR. Reader on RGs is managed in stage stack. Set in terraform.tfvars (gitignored)."
 }

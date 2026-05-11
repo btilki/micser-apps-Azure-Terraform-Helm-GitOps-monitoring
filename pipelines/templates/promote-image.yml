@@ -166,17 +166,20 @@ stages:
                     digest = "$(ImportImage.IMAGE_DIGEST)"
                     repository = "${{ parameters.targetAcrLoginServer }}/${{ parameters.imageName }}"
 
+                    # Match indented keys under `image:` (e.g. `  repository:`), not only column 0.
                     updated = re.sub(
-                        r'repository:\s*"?([^"\n]+)"?',
-                        f'repository: {repository}',
+                        r'^(\s*)repository:\s*"?([^"\n]+)"?',
+                        lambda m: f"{m.group(1)}repository: {repository}",
                         content,
-                        count=1
+                        count=1,
+                        flags=re.MULTILINE,
                     )
                     updated = re.sub(
-                        r'digest:\s*"?([^"\n]+)"?',
-                        f'digest: "{digest}"',
+                        r'^(\s*)digest:\s*"?([^"\n]+)"?',
+                        lambda m: f'{m.group(1)}digest: "{digest}"',
                         updated,
-                        count=1
+                        count=1,
+                        flags=re.MULTILINE,
                     )
 
                     if updated == content:

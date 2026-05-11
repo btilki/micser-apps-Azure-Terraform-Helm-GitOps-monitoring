@@ -37,10 +37,10 @@ variable "shared_state_key" {
   default = "boutique-shared.tfstate"
 }
 
-# Object ID of the app behind Azure DevOps `promotion-azure-connection` (Enterprise application → Object ID).
-# When set, grants AcrPull on dev ACR so `promote-to-stage` pre-check passes.
+# Enterprise application Object ID (not Application (client) ID) for the app behind
+# Azure DevOps `promotion-azure-connection`. DevOps → service connection → Manage service principal → Object ID.
 variable "promotion_service_principal_object_id" {
   type        = string
   default     = ""
-  description = "Optional. Promotion pipeline SP object ID for AcrPull on dev ACR."
+  description = "Optional. Promotion SP object ID for AcrPull on dev ACR. Set in terraform.tfvars (gitignored)."
 }
