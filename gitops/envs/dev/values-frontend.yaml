@@ -1,6 +1,6 @@
 image:
   repository: acrboutiquedevweu.azurecr.io/frontend
-  digest: "sha256:c9d8927c1b646afe71888dfea9ba57bf4fbf53e2a273e8817d3d53529346c513"
+  digest: "sha256:6da469acc3103ad48e446d0e56fe9f1c064612638c5be599e40c129951e91c2c"
 
 googleDemo:
   enabled: false
