@@ -65,10 +65,17 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    export SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
    export DNS_ZONE_RG="rg-boutique-shared-weu"
    export DNS_ZONE_NAME="biroltilki.art"
-   export EXTERNAL_DNS_MI_CLIENT_ID="5259a4fe-e8b7-498b-b2b9-e293a0d171af"
-   export EXTERNAL_DNS_PRINCIPAL_ID="$(az identity list --query "[?clientId=='${EXTERNAL_DNS_MI_CLIENT_ID}'].principalId | [0]" -o tsv)"
+   export EXTERNAL_DNS_MI_NAME="id-boutique-external-dns-weu"
+   export AKS_RG="rg-boutique-shared-weu"
+   export AKS_NAME="aks-boutique-weu"
+   export EXTERNAL_DNS_MI_CLIENT_ID="$(az identity show -g "$DNS_ZONE_RG" -n "$EXTERNAL_DNS_MI_NAME" --query clientId -o tsv)"
+   export EXTERNAL_DNS_PRINCIPAL_ID="$(az identity show -g "$DNS_ZONE_RG" -n "$EXTERNAL_DNS_MI_NAME" --query principalId -o tsv)"
    export DNS_ZONE_ID="$(az network dns zone show -g "$DNS_ZONE_RG" -n "$DNS_ZONE_NAME" --query id -o tsv)"
    export DNS_RG_ID="$(az group show -n "$DNS_ZONE_RG" --query id -o tsv)"
+   export AKS_OIDC_ISSUER="$(az aks show -g "$AKS_RG" -n "$AKS_NAME" --query oidcIssuerProfile.issuerUrl -o tsv)"
+
+   # If identity does not exist yet, create it first:
+   # az identity create -g "$DNS_ZONE_RG" -n "$EXTERNAL_DNS_MI_NAME" -l westeurope
 
    az role assignment create \
      --assignee-object-id "$EXTERNAL_DNS_PRINCIPAL_ID" \
@@ -81,6 +88,15 @@ Install platform services in this order: ingress, certificates, DNS automation, 
      --assignee-principal-type ServicePrincipal \
      --role "Reader" \
      --scope "$DNS_RG_ID"
+
+   # Required for AKS Workload Identity (external-dns service account subject)
+   az identity federated-credential create \
+     --name "fic-external-dns" \
+     --identity-name "$EXTERNAL_DNS_MI_NAME" \
+     --resource-group "$DNS_ZONE_RG" \
+     --issuer "$AKS_OIDC_ISSUER" \
+     --subject "system:serviceaccount:external-dns:external-dns" \
+     --audiences "api://AzureADTokenExchange"
    ```
    ```bash
    cd /Users/biroltilki/Downloads/Cursor/Microservices-Azure
@@ -134,6 +150,17 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    - if using GitHub, set `repoURL` as `https://github.com/<ORG>/<REPO>.git`
    - if using Azure Repos, set `repoURL` as `https://dev.azure.com/<ORG>/<PROJECT>/_git/<REPO>`
    - verify repository status is `Successful`
+   - for private GitHub repos, add credentials in Argo CD (UI or secret):
+   ```bash
+   GITHUB_TOKEN="$(gh auth token)"
+   kubectl -n argocd create secret generic repo-github-boutique \
+     --from-literal=type=git \
+     --from-literal=url=https://github.com/<ORG>/<REPO>.git \
+     --from-literal=username=x-access-token \
+     --from-literal=password="$GITHUB_TOKEN" \
+     --dry-run=client -o yaml | kubectl apply -f -
+   kubectl -n argocd label secret repo-github-boutique argocd.argoproj.io/secret-type=repository --overwrite
+   ```
 8. Use bootstrap app manifest:
    ```bash
    cp gitops/bootstrap/root-app.yaml.example gitops/bootstrap/root-app.yaml
@@ -147,6 +174,22 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    kubectl get certificate -A
    kubectl get applications -n argocd
    ```
+
+## Troubleshooting
+
+- `kubectl` fails with `no such host` for AKS API:
+  - refresh kubeconfig and retry:
+  ```bash
+  az aks get-credentials --resource-group rg-boutique-shared-weu --name aks-boutique-weu --overwrite-existing
+  kubectl get nodes
+  ```
+- `external-dns` shows `AADSTS70025` / missing federated identity credential:
+  - verify `fic-external-dns` exists for subject `system:serviceaccount:external-dns:external-dns`.
+- Argo `boutique-root` shows `Repository not found` / `authentication required`:
+  - add repository credentials in Argo CD for private GitHub repo, then hard refresh app.
+- Prod child apps show `OutOfSync/Missing` during Phase 2:
+  - expected until Phase 7 (`prod` uses stricter project controls and manual sync workflow).
+  - validate `apps-prod` and `platform-prod` are present; defer `*-prod` workload sync to the prod phase.
 
 ## Done checklist
 

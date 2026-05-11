@@ -26,7 +26,7 @@ serviceAccount:
   create: true
   name: external-dns
   annotations:
-    azure.workload.identity/client-id: "5259a4fe-e8b7-498b-b2b9-e293a0d171af"
+    azure.workload.identity/client-id: "bf3f3638-b35e-4e7e-b5ac-2723d3a95dbc"
   labels:
     azure.workload.identity/use: "true"
 
