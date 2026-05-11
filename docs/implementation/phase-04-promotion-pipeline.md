@@ -185,6 +185,7 @@ Quick reference table: `pipelines/README.md` → **Promotion permissions control
 - **`Unable to update target values file`** (Update GitOps values step):
   - the promotion template must match **`repository:`** and **`digest:`** lines even when indented under **`image:`** (e.g. two leading spaces). Older template versions only matched column 0; use current `pipelines/templates/promote-image.yml` or align the YAML to the expected shape.
   - if the log adds **Expected repository=… found repository=…** and they already match, refresh `main`—current template treats **already correct** target files as a no-op instead of failing.
+  - if the log says **`IMPORTED_IMAGE_DIGEST is empty`**, the digest was not propagated from the import step (re-run after a successful **Resolve digest and import image**); the template sets a job-scoped `IMPORTED_IMAGE_DIGEST` after `az acr import` because `$(ImportImage.IMAGE_DIGEST)` is unreliable inside **deployment** jobs.
 - `az acr import` fails:
   - validate source `AcrPull` and target roles (`AcrPush`, and `AcrPull` on stage target for dev→stage).
 - Wrong file modified in PR:

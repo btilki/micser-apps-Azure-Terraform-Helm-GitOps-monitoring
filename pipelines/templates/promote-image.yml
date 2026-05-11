@@ -166,6 +166,9 @@ stages:
                         --source "${{ parameters.sourceAcrLoginServer }}/${{ parameters.imageName }}@$DIGEST" \
                         --repository "${{ parameters.imageName }}"
 
+                      # Job-scoped variable: reliable in deployment jobs. Task output
+                      # $(ImportImage.IMAGE_DIGEST) is not always expanded for later steps.
+                      echo "##vso[task.setvariable variable=IMPORTED_IMAGE_DIGEST]$DIGEST"
                       echo "##vso[task.setvariable variable=IMAGE_DIGEST;isOutput=true]$DIGEST"
 
                 - script: |
@@ -175,9 +178,16 @@ stages:
                     from pathlib import Path
 
                     path = Path("${{ parameters.targetValuesFile }}")
-                    content = path.read_text()
-                    digest = "$(ImportImage.IMAGE_DIGEST)"
+                    content = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                    digest = "$(IMPORTED_IMAGE_DIGEST)".strip()
                     repository = "${{ parameters.targetAcrLoginServer }}/${{ parameters.imageName }}"
+
+                    if not digest:
+                        raise SystemExit(
+                            "Unable to update target values file: IMPORTED_IMAGE_DIGEST is empty. "
+                            "The import step should set it via ##vso[task.setvariable]; "
+                            "confirm 'Resolve digest and import image' completed and re-run."
+                        )
 
                     # Match indented keys under `image:` (e.g. `  repository:`), not only column 0.
                     updated = re.sub(
@@ -267,7 +277,7 @@ stages:
                     fi
 
                     BRANCH="promote/${{ parameters.promotionLabel }}-${{ parameters.imageName }}-$(Build.BuildId)"
-                    TITLE="chore(promote): ${{ parameters.imageName }} to ${{ parameters.promotionLabel }} $(ImportImage.IMAGE_DIGEST)"
+                    TITLE="chore(promote): ${{ parameters.imageName }} to ${{ parameters.promotionLabel }} $(IMPORTED_IMAGE_DIGEST)"
 
                     git checkout -b "$BRANCH"
                     git add "${{ parameters.targetValuesFile }}"
@@ -280,7 +290,7 @@ stages:
                       "title": "$TITLE",
                       "head": "$BRANCH",
                       "base": "main",
-                      "body": "Automated ${{ parameters.promotionLabel }} promotion\\n\\n- Image: ${{ parameters.imageName }}\\n- Digest: $(ImportImage.IMAGE_DIGEST)\\n- Source: ${{ parameters.sourceAcrLoginServer }}\\n- Target: ${{ parameters.targetAcrLoginServer }}"
+                      "body": "Automated ${{ parameters.promotionLabel }} promotion\\n\\n- Image: ${{ parameters.imageName }}\\n- Digest: $(IMPORTED_IMAGE_DIGEST)\\n- Source: ${{ parameters.sourceAcrLoginServer }}\\n- Target: ${{ parameters.targetAcrLoginServer }}"
                     }
                     EOF
                     )"
