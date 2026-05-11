@@ -16,12 +16,6 @@ variable "registry_name" {
   description = "Globally unique, alphanumeric only (e.g. acrboutiquedevweu)"
 }
 
-variable "sku" {
-  type        = string
-  default     = "Standard"
-  description = "Basic/Standard/Premium. Disabling public network access requires Premium."
-}
-
 variable "public_network_access_enabled" {
   type        = bool
   default     = false

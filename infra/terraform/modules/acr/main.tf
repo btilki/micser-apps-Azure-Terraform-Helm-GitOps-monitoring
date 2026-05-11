@@ -1,6 +1,8 @@
 locals {
-  # Azure only allows turning off public access on Premium SKUs; when private-only, force Premium.
-  acr_sku = var.public_network_access_enabled ? var.sku : "Premium"
+  # This module always creates a private endpoint. The registry must stay **Premium**:
+  # - public access disabled requires Premium, and
+  # - enabling public access must **not** downgrade to Standard while PEs exist (Azure returns 409).
+  acr_sku = "Premium"
 }
 
 resource "azurerm_container_registry" "main" {

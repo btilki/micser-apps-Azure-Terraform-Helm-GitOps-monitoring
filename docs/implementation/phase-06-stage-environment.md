@@ -40,12 +40,13 @@ Root Application **`boutique-root`** syncs `gitops/bootstrap/applications/`; you
 
 ### Azure
 
-4. Confirm **stage** ACR exists and holds promoted repositories:
+4. **Stage ACR network:** Terraform sets **`public_network_access_enabled = true`** on **stage** ACR (same idea as dev in Phase 3) so **`az acr`** from the internet works. The ACR module **always uses SKU Premium** (private endpoint is always attached; Azure returns **409** if Terraform tries to switch that registry to **Standard** while PEs exist). Run **`terraform apply`** in `infra/terraform/envs/stage` after pulling this change.
+
+5. Confirm **stage** ACR exists and holds promoted repositories (name **`acrboutiquestageweu`**):
    ```bash
    az acr list -o table
    az acr repository list --name acrboutiquestageweu -o table
    ```
-5. **Stage ACR name (this repo):** `acrboutiquestageweu`.
 
 ### GitHub / GitOps
 

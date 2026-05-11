@@ -34,7 +34,6 @@ module "acr" {
   tags                      = local.tags
   resource_group_name       = azurerm_resource_group.env.name
   registry_name             = "acrboutiquedevweu"
-  sku                       = "Premium"
   pe_subnet_id              = data.terraform_remote_state.shared.outputs.pe_subnet_id
   private_dns_zone_acr_id   = data.terraform_remote_state.shared.outputs.private_dns_zone_acr_id
   kubelet_object_id         = data.terraform_remote_state.shared.outputs.kubelet_identity_object_id
