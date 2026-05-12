@@ -39,7 +39,7 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    ```
 3. Install `cert-manager` and apply ClusterIssuer `letsencrypt-prod`:
    ```bash
-   cd path/to/microservices-azure
+   cd path/to/clone
 
    helm repo add jetstack https://charts.jetstack.io
    helm repo update
@@ -99,7 +99,7 @@ Install platform services in this order: ingress, certificates, DNS automation, 
      --audiences "api://AzureADTokenExchange"
    ```
    ```bash
-   cd path/to/microservices-azure
+   cd path/to/clone
 
    kubectl create ns external-dns --dry-run=client -o yaml | kubectl apply -f -
    kubectl -n external-dns create secret generic external-dns-azure \
@@ -118,7 +118,7 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    ```
 5. Install `kube-prometheus-stack` in `monitoring`:
    ```bash
-   cd path/to/microservices-azure
+   cd path/to/clone
 
    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
    helm repo update

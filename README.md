@@ -59,15 +59,16 @@ Mono-repo for Google’s [microservices-demo](https://github.com/GoogleCloudPlat
 
 ## Fork setup (replace placeholders)
 
-The template uses `YOUR_ORG/microservices-azure` (and related GitHub team slugs). After you fork or copy the repo, search-replace the following so Argo CD, pipelines, and reviews point at **your** org, repo name, and teams:
+**Canonical GitHub remote:** `https://github.com/btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability.git`  
+Argo CD `repoURL` values and Azure DevOps `GITHUB_REPOSITORY` / `githubRepository` defaults already use `btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability`. If you **fork** or copy under another org or repo name, search-replace that `org/repo` string (and the matching `https://github.com/...git` URLs) everywhere below.
 
-1. **GitOps** — In `gitops/**/*.yaml`, every `repoURL` (and `sources` URLs on `Application`/`AppProject` objects) uses `https://github.com/YOUR_ORG/microservices-azure.git`; set this to your clone’s HTTPS URL (same string everywhere is fine).
-2. **CI pipelines** — In `pipelines/ci/*.yml`, the variable `GITHUB_REPOSITORY` is set to `YOUR_ORG/microservices-azure`; set it to `your-org/your-repo` so PR API calls target the correct GitHub repository.
-3. **Promotion pipelines** — In `pipelines/promote/promote-to-stage.yml` and `promote-to-prod.yml`, the `githubRepository` parameter default is the same `YOUR_ORG/microservices-azure`; align it with your GitHub slug (the template `pipelines/templates/promote-image.yml` consumes this value).
+1. **GitOps** — In `gitops/**/*.yaml`, every `repoURL` (and `sources` URLs on `Application`/`AppProject` objects) should match your clone’s HTTPS URL (same string everywhere is fine).
+2. **CI pipelines** — In `pipelines/ci/*.yml`, set `GITHUB_REPOSITORY` to `your-org/your-repo` so PR API calls target the correct GitHub repository.
+3. **Promotion pipelines** — In `pipelines/promote/promote-to-stage.yml` and `promote-to-prod.yml`, set the `githubRepository` parameter default to the same slug (the template `pipelines/templates/promote-image.yml` consumes this value).
 4. **`CODEOWNERS`** — Replace `@YOUR_ORG/prod-gitops-approvers` and `@YOUR_ORG/prod-gitops-secondary` with teams (or users) that should own production GitOps paths.
 5. **Azure platform GitOps** — In `gitops/apps/platform/external-dns/azure.json`, `gitops/apps/platform/external-dns/values.yaml`, `gitops/apps/platform/cert-manager/clusterissuer.yaml`, and `gitops/apps/platform/cert-manager/values.yaml`, replace `YOUR_TENANT_ID`, `YOUR_SUBSCRIPTION_ID`, `YOUR_DNS_RESOURCE_GROUP`, managed identity client IDs, DNS zone name, and ACME email with your values (for example from `az account show`, `az identity show`, and Terraform outputs described in [Phase 1](docs/implementation/phase-01-terraform-foundation.md) / [Phase 2](docs/implementation/phase-02-cluster-bootstrap.md)).
 
-To catch any remaining examples (including under `docs/`), run `rg YOUR_ORG` from the repo root; for Azure placeholders, run `rg YOUR_TENANT_ID gitops/apps/platform` (and similarly for other `YOUR_*` strings above). Adjust matches you intend to keep literal.
+To catch any remaining canonical slug or `YOUR_ORG` team placeholders (including under `docs/`), run `rg 'btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability|YOUR_ORG'` from the repo root; for Azure placeholders, run `rg YOUR_TENANT_ID gitops/apps/platform` (and similarly for other `YOUR_*` strings above). Adjust matches you intend to keep literal.
 
 ## Terraform apply order
 

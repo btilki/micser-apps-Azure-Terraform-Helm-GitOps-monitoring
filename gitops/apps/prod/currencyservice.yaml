@@ -8,7 +8,7 @@ metadata:
 spec:
   project: boutique-prod
   source:
-    repoURL: https://github.com/YOUR_ORG/microservices-azure.git
+    repoURL: https://github.com/btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability.git
     targetRevision: main
     path: charts/currencyservice
     helm:

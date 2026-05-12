@@ -15,7 +15,7 @@
    - Optional:
      - A dedicated dev ARM connection (if you later split CI/prod identities)
      - A dedicated ACR Docker connection (not required with current CI AzureCLI flow)
-3. Create pipelines from existing YAML: **Pipelines → New pipeline → Existing Azure Pipelines YAML file**. Register **one pipeline per file** under `ci/` and `promote/` (each file has its own triggers or is manual). Optionally register root `azure-pipelines.yml` as a manual check that those YAML paths exist.
+3. Create pipelines from existing YAML: **Pipelines → New pipeline → Existing Azure Pipelines YAML file**. Register **one pipeline per file** under `ci/` and `promote/`. **Service CI** files under `ci/` use `trigger: none` / `pr: none` so GitHub pushes do not start builds automatically — use **Run pipeline** in Azure DevOps (or restore branch/path triggers in YAML when you want CI on every commit). Promote wrappers are already manual-only. Optionally register root `azure-pipelines.yml` as a manual layout check.
 4. Configure variable groups before first run.
    - Required now:
      - `variable-group-for-microservices`

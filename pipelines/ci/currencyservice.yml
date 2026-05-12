@@ -1,22 +1,6 @@
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - apps/currencyservice/*
-      - charts/currencyservice/*
-      - pipelines/ci/currencyservice.yml
-
-pr:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - apps/currencyservice/*
-      - charts/currencyservice/*
-      - pipelines/ci/currencyservice.yml
+# Push/PR triggers off: run manually in Azure DevOps. Re-enable when CI-on-commit is desired.
+trigger: none
+pr: none
 
 pool:
   vmImage: ubuntu-latest
@@ -28,7 +12,7 @@ variables:
   IMAGE_REPOSITORY: currencyservice
   GITOPS_VALUES_FILE: gitops/envs/dev/values-currencyservice.yaml
   AZURE_SUBSCRIPTION_CONNECTION: promotion-azure-connection
-  GITHUB_REPOSITORY: YOUR_ORG/microservices-azure
+  GITHUB_REPOSITORY: btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability
 
 stages:
   - stage: BuildScanPush

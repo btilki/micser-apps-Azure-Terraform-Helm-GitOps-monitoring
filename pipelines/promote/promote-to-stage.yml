@@ -39,7 +39,7 @@ extends:
     targetAcrLoginServer: acrboutiquestageweu.azurecr.io
     sourceValuesFile: gitops/envs/dev/values-${{ parameters.service }}.yaml
     targetValuesFile: gitops/envs/stage/values-${{ parameters.service }}.yaml
-    githubRepository: YOUR_ORG/microservices-azure
+    githubRepository: btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability
     azureSubscriptionConnection: promotion-azure-connection
     promotionLabel: stage
     requiredSourceAcrRoles: AcrPull
