@@ -1,4 +1,6 @@
 # Helm values for external-dns on AKS + Workload Identity.
+# Replace placeholders before apply: domainFilters/example.com and
+# serviceAccount.annotations.azure.workload.identity/client-id.
 # 1) Create Secret external-dns-azure in namespace external-dns (see phase-02-cluster-bootstrap.md).
 # 2) Set serviceAccount.annotations to your external-dns user-assigned MI client ID.
 # 3) helm upgrade --install external-dns external-dns/external-dns -n external-dns -f values.yaml

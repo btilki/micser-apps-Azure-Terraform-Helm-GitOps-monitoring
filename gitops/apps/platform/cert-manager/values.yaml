@@ -1,4 +1,5 @@
 # Helm values for cert-manager on AKS with Azure Workload Identity.
+# Replace placeholders before apply: serviceAccount.annotations.azure.workload.identity/client-id.
 # Usage:
 # helm upgrade --install cert-manager jetstack/cert-manager \
 #   -n cert-manager \
