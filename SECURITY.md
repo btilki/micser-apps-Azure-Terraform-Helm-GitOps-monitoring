@@ -41,17 +41,7 @@ Resolve SP object ID: Azure DevOps → Service connections → **Manage Service 
 
 ## Runtime hardening
 
-Shipped under `gitops/platform/<env>/` (synced by `platform-dev`, `platform-stage`, `platform-prod`):
-
-| Control | dev | stage / prod |
-|---------|-----|----------------|
-| Pod Security labels | `baseline` | `restricted` |
-| NetworkPolicy | default-deny + baseline ingress/egress | tighter egress in prod |
-| ResourceQuota / LimitRange | yes | yes (stricter in prod) |
-
-Helm charts set `securityContext` (non-root, dropped caps) in `charts/*/values.yaml` and templates.
-
-Index: [policies/README.md](policies/README.md). Validation: [Phase 8](docs/implementation/phase-08-hardening.md).
+Guardrails live in `gitops/platform/<env>/` (NetworkPolicy, PSS labels, quotas). Summary: [ARCHITECTURE.md — Cluster layout](ARCHITECTURE.md#cluster-layout). Paths and validation: [policies/README.md](policies/README.md), [Phase 8](docs/implementation/phase-08-hardening.md).
 
 ---
 
@@ -84,9 +74,3 @@ Configure in [Phase 7](docs/implementation/phase-07-prod-environment.md).
 
 If you discover a security issue in this repository, report it privately to the repository owner rather than opening a public issue with exploit details.
 
----
-
-## Related
-
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — cert/TLS and ingress incidents
-- [docs/runbooks/](docs/runbooks/README.md) — operational response

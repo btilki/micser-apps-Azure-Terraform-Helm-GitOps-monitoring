@@ -57,15 +57,7 @@ Finalize operator experience: dashboards for visibility, smoke tests for release
 - Smoke checks are automated and fail on bad deployments.
 - Documentation supports fast onboarding and operations.
 
-## Repository deliverables (implemented here)
-
-| Item | Location |
-|------|-----------|
-| Smoke script | `scripts/smoke.sh` (curl, retries, HTTP 200); see `scripts/README.md` |
-| Promotion smoke | `pipelines/templates/promote-image.yml` parameter `smokeBaseUrl`; set in `promote-to-stage.yml` / `promote-to-prod.yml` |
-| Release checklist | [docs/runbooks/release-verification.md](../runbooks/release-verification.md) |
-| Grafana / Alertmanager ops | [docs/runbooks/grafana-dashboards.md](../runbooks/grafana-dashboards.md) |
-| Root release + ops links | [DEPLOYMENT.md](../../DEPLOYMENT.md), [TROUBLESHOOTING.md](../../TROUBLESHOOTING.md) |
+**Artifacts:** [scripts/README.md](../../scripts/README.md) (`smoke.sh`), [docs/runbooks/](../runbooks/README.md), [DEPLOYMENT.md — Release flow](../../DEPLOYMENT.md#release-flow).
 
 **Do manually:** import/build specific Grafana JSON in the UI if defaults are not enough; complete one dry-run release (small change) and confirm alerts stay normal (step 10 above).
 

@@ -18,14 +18,7 @@ helm version
 git --version
 ```
 
-| Requirement | Notes |
-|-------------|--------|
-| Azure subscription | Contributor on RG, AKS, ACR, DNS |
-| Azure DevOps project | Pipelines, Library, service connections |
-| GitHub repo (recommended) | GitOps PRs from CI/promote |
-| Optional domain | Delegate NS to Azure DNS from shared Terraform stack |
-
-Tool table: [README.md — Prerequisites](README.md#prerequisites).
+Tools and accounts: [README.md — Prerequisites](README.md#prerequisites).
 
 ---
 
@@ -167,16 +160,4 @@ Replace `example.com` with your domain:
 
 Operations: Argo CD `https://argocd.example.com`, Grafana `https://grafana.example.com` (configure per your ingress).
 
----
-
-## Component docs
-
-| Topic | Path |
-|-------|------|
-| Pipelines | [pipelines/README.md](pipelines/README.md) |
-| GitOps layout | [gitops/README.md](gitops/README.md) |
-| Helm | [charts/README.md](charts/README.md) |
-| App sources | [apps/README.md](apps/README.md) |
-| Smoke script | [scripts/README.md](scripts/README.md) |
-| Terraform bootstrap | [infra/terraform/envs/bootstrap/README.md](infra/terraform/envs/bootstrap/README.md) |
-| Prod GitOps process | [docs/gitops/prod-branch-protection.md](docs/gitops/prod-branch-protection.md), [prod-known-good-digests.md](docs/gitops/prod-known-good-digests.md) |
+Prod GitOps: [prod-branch-protection](docs/gitops/prod-branch-protection.md), [prod-known-good-digests](docs/gitops/prod-known-good-digests.md). Other component paths: [README — Repository layout](README.md#repository-layout).

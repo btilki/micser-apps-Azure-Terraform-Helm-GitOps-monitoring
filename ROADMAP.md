@@ -9,12 +9,12 @@ Planned and out-of-scope work for **Online Boutique on Azure**. Current deployme
 | Area | Status |
 |------|--------|
 | Terraform bootstrap, shared, dev/stage/prod | Implemented |
-| AKS + ingress, cert-manager, external-dns, monitoring, Argo CD | Implemented (Phase 2) |
-| Owned services: frontend, cart, currency, product catalog, redis-cart | Charts, GitOps, CI YAML in repo |
+| AKS platform (ingress, cert-manager, external-dns, monitoring, Argo CD) | Implemented — [Phase 2](docs/implementation/phase-02-cluster-bootstrap.md) |
+| Owned workloads + CI/GitOps | Implemented — scope in [ARCHITECTURE.md](ARCHITECTURE.md#application-scope-v1) |
 | Promote dev → stage → prod by digest | `pipelines/promote/` |
-| Platform guardrails (NetworkPolicy, quota, PSS) | `gitops/platform/` |
-| Runbooks (rollback, ingress, cert, Argo) | `docs/runbooks/` |
-| Scaffold app images | `apps/*/Dockerfile` — replace with upstream source optional |
+| Platform guardrails | `gitops/platform/` — [SECURITY.md](SECURITY.md) |
+| Runbooks | `docs/runbooks/` |
+| Scaffold app images | Optional upstream source in `apps/` |
 
 ---
 

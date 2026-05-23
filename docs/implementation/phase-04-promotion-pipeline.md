@@ -16,10 +16,7 @@ Use one reusable promotion template and environment-specific wrappers. Each run 
 
 ## Step-by-step
 
-1. In Azure, verify promotion identity permissions (see **§1** for exact roles, including **Reader** on listed resource groups and **AcrPull+AcrPush** on stage ACR for dev→stage):
-   - source ACR: `AcrPull` (minimum)
-   - target ACR: `AcrPush` (and `AcrPull` on stage when promoting dev→stage, per wrapper)
-   Check with:
+1. Verify promotion identity permissions — role matrix: [DEPLOYMENT.md — Promotion SP roles](../../DEPLOYMENT.md#promotion-service-principal-roles). Check assignments:
    ```bash
    az role assignment list --assignee <PRINCIPAL_ID_OR_APP_ID> -o table
    ```

@@ -8,19 +8,7 @@
 
 Dev/stage/prod need **predictable blast radius**: default-deny networking, pod security levels, resource caps, vulnerability gates on images, and spend alerts. Applying everything at once before apps run causes friction; this phase verifies controls after workloads are stable.
 
-## This repository (already present)
-
-| Control | Location |
-|---------|----------|
-| Pod Security labels (`baseline` dev, `restricted` stage/prod) | `gitops/platform/{dev,stage,prod}/namespace.yaml` |
-| Default-deny + baseline ingress + core egress NetworkPolicies | `gitops/platform/{dev,stage,prod}/networkpolicy-*.yaml` |
-| ResourceQuota / LimitRange | `gitops/platform/{dev,stage,prod}/resourcequota.yaml`, `limitrange.yaml` |
-| Helm `securityContext` defaults | `charts/*/values.yaml`, deployment templates |
-| CI Trivy gate (HIGH+CRITICAL fail build) | `pipelines/ci/*.yml` |
-| Optional subscription budget (80% notification) | `infra/terraform/envs/bootstrap/` (`enable_subscription_budget`, `budget_notification_emails`) |
-| Policy folder index | [policies/README.md](../../policies/README.md) |
-
-Argo CD Applications **`platform-dev`**, **`platform-stage`**, **`platform-prod`** sync the `gitops/platform/<env>/` trees. You normally **edit and PR** those files rather than creating parallel copies under `policies/`.
+Control inventory: [SECURITY.md](../../SECURITY.md), [policies/README.md](../../policies/README.md). Synced by Argo apps **`platform-dev`**, **`platform-stage`**, **`platform-prod`** (`gitops/platform/<env>/`).
 
 ## Step-by-step
 

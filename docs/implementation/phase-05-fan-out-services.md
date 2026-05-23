@@ -4,12 +4,9 @@
 
 **Goal:** Complete **v1** application coverage in `dev`: all **owned** services use this repo’s CI/GitOps; the **rest of the boutique path** can use **upstream Google** images when you choose to wire them in.
 
-## v1 scope (explicit)
+Workload scope (owned vs upstream): [ARCHITECTURE.md — Application scope](../../ARCHITECTURE.md#application-scope-v1). Promotion uses the **`service`** parameter on `pipelines/promote/promote-to-*.yml` (Phase 4).
 
-- **Owned here (v1 = 5 workloads: 4 services + Redis):** `frontend`, `cartservice`, `currencyservice`, `productcatalogservice`, `redis-cart` — each has a chart under `charts/<service>/`, values under `gitops/envs/{dev,stage,prod}/values-<service>.yaml`, CI under `pipelines/ci/<service>.yml`, and promotion is covered by the **`service`** parameter on `pipelines/promote/promote-to-*.yml` (see Phase 4).
-- **Upstream Google (5 + loadgen):** `checkoutservice`, `emailservice`, `paymentservice`, `shippingservice`, `recommendationservice`, and `loadgenerator` — typically run from published microservices-demo images (not built by this repo’s service CI). **`adservice`** is optional / later for v1.
-
-## This repository (already scaffolded)
+## Paths in this repository
 
 For the five **owned** workloads, the following already exist unless you intentionally removed them:
 

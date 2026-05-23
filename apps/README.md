@@ -28,5 +28,3 @@ git subtree add --prefix=apps/microservices-demo microservices-demo main --squas
 ```
 
 Then copy or point each `apps/<service>/Dockerfile` at the upstream service directory and update CI lint/test steps in `pipelines/ci/<service>.yml`.
-
-**v1 scope** (what this repo builds and promotes): `frontend`, `cartservice`, `currencyservice`, `productcatalogservice`, `redis-cart` — see [ARCHITECTURE.md](../ARCHITECTURE.md).

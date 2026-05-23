@@ -21,18 +21,7 @@ Symptom-based index for **Online Boutique on Azure**. Deployment setup: [DEPLOYM
 
 ---
 
-## Runbooks (incidents)
-
-| Runbook | Use when |
-|---------|----------|
-| [release-verification](docs/runbooks/release-verification.md) | After promote PR merge |
-| [prod-rollback](docs/runbooks/prod-rollback.md) | Bad prod release |
-| [ingress-5xx-triage](docs/runbooks/ingress-5xx-triage.md) | HTTP 5xx at ingress |
-| [certificate-renewal-expiry](docs/runbooks/certificate-renewal-expiry.md) | TLS errors, cert not Ready |
-| [failing-argocd-sync-prod](docs/runbooks/failing-argocd-sync-prod.md) | Prod Argo won’t sync |
-| [grafana-dashboards](docs/runbooks/grafana-dashboards.md) | Release monitoring |
-
-Full index: [docs/runbooks/README.md](docs/runbooks/README.md).
+Detailed procedures: [docs/runbooks/README.md](docs/runbooks/README.md).
 
 ---
 
@@ -74,12 +63,7 @@ State bootstrap: [infra/terraform/envs/bootstrap/README.md](infra/terraform/envs
 
 ## Smoke tests
 
-```bash
-./scripts/smoke.sh --env stage
-./scripts/smoke.sh --url https://dev.boutique.example.com/
-```
-
-Used in promote pipelines when `smokeBaseUrl` is set. See [scripts/README.md](scripts/README.md).
+See [scripts/README.md](scripts/README.md).
 
 ---
 
