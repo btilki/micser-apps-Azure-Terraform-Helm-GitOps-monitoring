@@ -21,7 +21,7 @@
      - `variable-group-for-microservices`
      - secret variable: `GITHUB_TOKEN`
 
-See the repository [README.md](../README.md) (system overview) and [docs/implementation/phase-03-first-service-frontend.md](../docs/implementation/phase-03-first-service-frontend.md).
+See [DEPLOYMENT.md](../DEPLOYMENT.md), [ARCHITECTURE.md](../ARCHITECTURE.md), and [Phase 3](../docs/implementation/phase-03-first-service-frontend.md).
 
 ## Azure DevOps pipeline source after a GitHub rename
 

@@ -1,8 +1,14 @@
 # Phase 4 — Promotion pipeline
 
-[← Phase 3](phase-03-first-service-frontend.md) · [Index](README.md) · [Phase 5 →](phase-05-fan-out-services.md)
+[← Phase 3](phase-03-first-service-frontend.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 5 →](phase-05-fan-out-services.md)
 
 **Goal:** Promote images by digest across environments without rebuilding.
+
+## Why this phase matters
+
+Rebuilding images per environment risks drift. **`az acr import`** copies the same manifest digest from dev → stage → prod ACRs; GitOps values files record that digest; Argo CD deploys it. The shared template `pipelines/templates/promote-image.yml` enforces RBAC **before** import so failed promotions fail fast.
+
+Pipeline YAML is already in `pipelines/promote/` — you configure Azure DevOps identities, environments, and run manual promotions.
 
 ## Process (brief)
 
@@ -202,4 +208,4 @@ Quick reference table: `pipelines/README.md` → **Promotion permissions control
 
 ---
 
-[← Phase 3](phase-03-first-service-frontend.md) · [Index](README.md) · [Phase 5 →](phase-05-fan-out-services.md)
+[← Phase 3](phase-03-first-service-frontend.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 5 →](phase-05-fan-out-services.md)

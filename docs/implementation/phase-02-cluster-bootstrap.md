@@ -1,8 +1,20 @@
 # Phase 2 — Cluster bootstrap
 
-[← Phase 1](phase-01-terraform-foundation.md) · [Index](README.md) · [Phase 3 →](phase-03-first-service-frontend.md)
+[← Phase 1](phase-01-terraform-foundation.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 3 →](phase-03-first-service-frontend.md)
 
 **Goal:** Install base platform components so GitOps deployments can run on AKS.
+
+## Why this phase matters
+
+| Component | Role |
+|-----------|------|
+| **ingress-nginx** | HTTP(S) entry; binds to Terraform static public IP |
+| **cert-manager** | TLS certificates (DNS-01 against Azure DNS) |
+| **external-dns** | Creates/updates DNS records for Ingress hosts |
+| **kube-prometheus-stack** | Metrics, Grafana, Alertmanager |
+| **Argo CD** | Reconciles `gitops/` to cluster state |
+
+Helm values and issuer manifests are in `gitops/apps/platform/` — replace `YOUR_*` placeholders **before** installing external-dns and cert-manager.
 
 ## Process (brief)
 
@@ -39,7 +51,7 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    ```
 3. Install `cert-manager` and apply ClusterIssuer `letsencrypt-prod`:
    ```bash
-   cd path/to/clone
+   cd /path/to/your/repo   # repository root (contains gitops/, infra/, charts/)
 
    helm repo add jetstack https://charts.jetstack.io
    helm repo update
@@ -99,7 +111,7 @@ Install platform services in this order: ingress, certificates, DNS automation, 
      --audiences "api://AzureADTokenExchange"
    ```
    ```bash
-   cd path/to/clone
+   cd /path/to/your/repo   # repository root
 
    kubectl create ns external-dns --dry-run=client -o yaml | kubectl apply -f -
    kubectl -n external-dns create secret generic external-dns-azure \
@@ -118,7 +130,7 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    ```
 5. Install `kube-prometheus-stack` in `monitoring`:
    ```bash
-   cd path/to/clone
+   cd /path/to/your/repo   # repository root
 
    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
    helm repo update
@@ -175,10 +187,6 @@ Install platform services in this order: ingress, certificates, DNS automation, 
    kubectl get applications -n argocd
    ```
 
-### Root Application `boutique-root` synced in Argo CD:
-
-![alt text](./../diagrams/argocd-boutique-root-application-synced.png)
-
 ## Done checklist
 
 - Ingress has external address.
@@ -188,4 +196,4 @@ Install platform services in this order: ingress, certificates, DNS automation, 
 
 ---
 
-[← Phase 1](phase-01-terraform-foundation.md) · [Index](README.md) · [Phase 3 →](phase-03-first-service-frontend.md)
+[← Phase 1](phase-01-terraform-foundation.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 3 →](phase-03-first-service-frontend.md)

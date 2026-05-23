@@ -1,6 +1,6 @@
 # Kubernetes policy & networking
 
-This folder is reserved for **policy bundles** (Kyverno, Gatekeeper, OPA) and any cluster-wide policy YAML you want to version outside GitOps paths (see the repository [README.md](../README.md) and Phase 8 in [docs/implementation/](../docs/implementation/README.md)).
+This folder is reserved for **policy bundles** (Kyverno, Gatekeeper, OPA) and any cluster-wide policy YAML you want to version outside GitOps paths (see [SECURITY.md](../SECURITY.md) and [Phase 8](../docs/implementation/phase-08-hardening.md)).
 
 ## What ships today (Phase 8)
 

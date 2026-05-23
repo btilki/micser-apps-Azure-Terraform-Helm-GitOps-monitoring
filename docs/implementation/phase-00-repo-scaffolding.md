@@ -1,12 +1,18 @@
 # Phase 0 — Repo scaffolding
 
-[← Index](README.md) · [Phase 1 →](phase-01-terraform-foundation.md)
+[← Deployment](../../DEPLOYMENT.md) · [Phase 1 →](phase-01-terraform-foundation.md)
 
 **Goal:** Prepare GitHub/Azure DevOps governance before infrastructure or deployments.
 
+## Why this phase matters
+
+Branch protection and **CODEOWNERS** enforce the same rules the rest of the platform assumes: infrastructure and prod GitOps change only through reviewed PRs. Azure DevOps pipelines need read access to the repo (and permission to open PR branches when CI updates digests).
+
+If you **cloned this repository** with history intact, skip “initialize empty remote” and start at **step 4** (placeholders) after adding your `origin`.
+
 ## Process (brief)
 
-Create the remote repo, configure branch protection and owners, then verify that changes must go through PR review.
+Create or connect the remote repo, configure branch protection and owners, then verify that changes must go through PR review.
 
 ## Step-by-step
 
@@ -22,7 +28,7 @@ Create the remote repo, configure branch protection and owners, then verify that
    git remote add origin <REMOTE_URL>
    git push -u origin main
    ```
-4. Replace template placeholders for your GitHub org, repository slug, and review teams — see **Fork setup (replace placeholders)** in the root [README.md](../../README.md) (covers GitOps `repoURL`, Azure Pipelines variables, and `CODEOWNERS`).
+4. Replace template placeholders for your GitHub org, repository slug, and review teams — see [DEPLOYMENT.md — Fork setup](../../DEPLOYMENT.md#fork-setup-replace-placeholders) (GitOps `repoURL`, Azure Pipelines variables, `CODEOWNERS`).
 5. Configure branch protection for `main` in GitHub:
    - `Settings -> Branches -> Add branch protection rule`
    - enable: PR required, required approvals, dismiss stale approvals
@@ -50,4 +56,4 @@ Create the remote repo, configure branch protection and owners, then verify that
 
 ---
 
-[← Index](README.md) · [Phase 1 →](phase-01-terraform-foundation.md)
+[← Deployment](../../DEPLOYMENT.md) · [Phase 1 →](phase-01-terraform-foundation.md)

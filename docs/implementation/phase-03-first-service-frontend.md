@@ -1,174 +1,224 @@
 # Phase 3 — First service (`frontend`)
 
-[← Phase 2](phase-02-cluster-bootstrap.md) · [Index](README.md) · [Phase 4 →](phase-04-promotion-pipeline.md)
+[← Phase 2](phase-02-cluster-bootstrap.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 4 →](phase-04-promotion-pipeline.md)
 
-**Goal:** Build → dev ACR → GitOps digest → Argo CD → HTTPS on dev hostname.
+**Goal:** Run the existing **frontend** pipeline so a new image digest lands in GitOps, Argo CD deploys to **dev**, and the storefront is reachable over **HTTPS**.
 
-## Process (brief)
+## Why this phase matters
 
-> **Use: Git** (branches, PRs), **Helm**, **Azure DevOps Pipelines** (or GitHub Actions), **Azure Portal/CLI** (ACR, service connections), **Argo CD UI**, browser for HTTPS test.
+- **CI** proves the path from commit → container → **dev ACR** without rebuilding on every environment.
+- **GitOps** stores the **immutable digest** in Git; Argo CD is the only deploy mechanism to the cluster.
+- **Ingress + cert-manager + external-dns** (Phase 2) turn the in-cluster Service into a public URL with TLS.
 
-1. **Source** — Add `apps/frontend` (copy from [microservices-demo](https://github.com/GoogleCloudPlatform/microservices-demo) or use subtree; see `apps/README.md`).
+This repository already contains the chart, Argo `Application`, values file, and pipeline YAML. You **register and run** them — you do not create them from scratch unless you are experimenting.
 
-2. **Helm** — Create `charts/frontend` (Deployment, Service, ServiceAccount; Ingress for dev; values for registry + **digest**, tolerations/nodeSelector for `env=dev`).
+## This repository (already present)
 
-3. **GitOps** — Add `gitops/apps/dev/frontend-dev.yaml` (Argo CD `Application`, `metadata.name: frontend-dev`) and `gitops/envs/dev/values-frontend.yaml` (dev ACR login server + placeholder digest).
+| Artifact | Path |
+|----------|------|
+| Helm chart | `charts/frontend/` |
+| Dev Argo Application | `gitops/apps/dev/frontend-dev.yaml` (picked up by umbrella **`apps-dev`**) |
+| Dev values (digest updated by CI) | `gitops/envs/dev/values-frontend.yaml` |
+| CI pipeline | `pipelines/ci/frontend.yml` |
+| Docker build context | `apps/frontend/Dockerfile` (scaffold image until you add real app source) |
 
-4. **Register app** — Add `gitops/apps/dev/frontend-dev.yaml`; the **`apps-dev`** umbrella (`gitops/bootstrap/applications/apps-dev.yaml`) syncs that directory so the root app picks it up.
+**Important:** Keep `googleDemo.enabled: false` in values when using your own image from dev ACR. If `true` without Google demo services, the chart can route to an `ExternalName` and return **503**.
 
-5. **Azure DevOps** — New pipeline from YAML: `pipelines/ci/frontend.yml` (create file): build image, run tests/lint, **Trivy**, push to **dev** ACR, output digest, script or task to open PR updating `gitops/envs/dev/values-frontend.yaml`. Configure **service connection** (ACR push, federated identity if used).
+## Step-by-step
 
-6. **Merge** GitOps PR — In Argo CD: app syncs; **Applications** → `frontend-dev` healthy.
+### 0) Pre-checks
 
-7. **TLS** — Ingress host matches cert (e.g. `dev.boutique.<domain>`); fix DNS/cert-manager if browser shows cert errors.
+```bash
+az account show -o table
+export KUBECONFIG=~/.kube/config-boutique   # or your kubeconfig path
+kubectl get nodes
+kubectl get applications -n argocd
+kubectl get pods -n ingress-nginx,cert-manager,argocd
+```
 
-## Detailed step-by-step guide (practical)
+Confirm dev Terraform outputs (Phase 1):
 
-Use this as a concrete path from source code to a live HTTPS endpoint in `dev`.
+```bash
+cd infra/terraform/envs/dev && terraform output
+```
 
-### 0) Pre-checks (run once)
+### 1) Replace fork placeholders (if not done)
 
-1. Confirm these are working:
-   ```bash
-   az account show
-   kubectl get nodes
-   kubectl get applications -n argocd
-   ```
-2. Confirm `dev` infrastructure exists (from Phase 1):
-   ```bash
-   cd infra/terraform/envs/dev
-   terraform output
-   ```
-3. Confirm cluster bootstrap components from Phase 2 are healthy:
-   ```bash
-   kubectl get pods -n ingress-nginx
-   kubectl get pods -n cert-manager
-   kubectl get pods -n argocd
-   ```
+- `pipelines/ci/frontend.yml`: `GITHUB_REPOSITORY`, `AZURE_SUBSCRIPTION_CONNECTION`, ACR names if yours differ.
+- GitOps `repoURL` values: your GitHub HTTPS URL (see [DEPLOYMENT.md — Fork setup](../../DEPLOYMENT.md#fork-setup-replace-placeholders)).
+- `gitops/envs/dev/values-frontend.yaml`: `ingress.host` (e.g. `dev.boutique.<your-domain>`).
 
-### 1) Add frontend source code
+### 2) Register CI in Azure DevOps
 
-1. Put app code under:
-   - `apps/frontend`
-2. Ensure it can build locally:
-   ```bash
-   cd apps/frontend
-   # use your runtime toolchain here (npm/mvn/go/etc.)
-   ```
-3. Add/update Dockerfile if missing:
-   - Build artifact
-   - Expose app port
-   - Set non-root user if possible
+**What “register” means:** The file `pipelines/ci/frontend.yml` already lives in GitHub. Azure DevOps does not run it until you create a **pipeline** object in the ADO UI that points at that YAML path. Registration is a one-time setup per service; later you only click **Run pipeline**.
 
-### 2) Create Helm chart for frontend
+**What the pipeline does when it runs** (for reference):
 
-1. Create chart:
-   ```bash
-   mkdir -p charts/frontend/templates
-   ```
-2. Add minimum templates:
-   - `Deployment`
-   - `Service`
-   - `ServiceAccount`
-   - `Ingress` (dev host)
-3. In chart values, include:
-   - `image.repository`
-   - `image.digest` (preferred)
-   - `ingress.host`
-   - scheduling fields for dev pool:
-     - `nodeSelector`
-     - `tolerations`
-4. Render check:
-   ```bash
-   helm template frontend charts/frontend -f gitops/envs/dev/values-frontend.yaml
+1. Checks out **this GitHub repo** (`checkout: self`).
+2. Builds `apps/frontend/Dockerfile` and pushes the image to dev ACR **`acrboutiquedevweu`**.
+3. Runs Trivy on the image.
+4. Opens a GitHub PR that updates **`gitops/envs/dev/values-frontend.yaml`** with the new image digest.
+
+YAML triggers are **off** (`trigger: none`), so pushes to `main` do **not** start this build—you start it manually from Azure DevOps.
+
+---
+
+#### 2a) Create the pipeline (point ADO at the YAML file)
+
+In your Azure DevOps **project**:
+
+1. Open **Pipelines** → **New pipeline** (or **Create Pipeline**).
+2. Choose **GitHub** (not “Azure Repos Git”) unless you mirror the repo only into Azure Repos.
+3. Select the **GitHub connection** / organization and authorize the **Azure Pipelines** GitHub App if prompted.
+4. Pick **your fork** of this repository (the same repo that contains `pipelines/ci/frontend.yml`).
+5. On **Configure your pipeline**, choose **Existing Azure Pipelines YAML file**.
+6. Set **Branch** to `main` (or the branch you deploy from).
+7. Set **Path** to:
+
+   ```text
+   /pipelines/ci/frontend.yml
    ```
 
-### 3) Add GitOps app manifests
+8. **Continue** → review → **Save** (or **Run**). Give the pipeline a clear name, e.g. `ci-frontend`.
 
-1. Create Argo CD `Application`:
-   - `gitops/apps/dev/frontend-dev.yaml`
-2. Create env values file:
-   - `gitops/envs/dev/values-frontend.yaml`
-3. Put initial image settings in values file:
-   - `repository: <dev-acr-login-server>/frontend`
-   - `digest: sha256:<placeholder>`
-4. Register for Argo CD (this repo’s pattern):
-   - add **`gitops/apps/dev/frontend-dev.yaml`** (and merge to `main`). The umbrella Application **`apps-dev`** in `gitops/bootstrap/applications/apps-dev.yaml` syncs the whole `gitops/apps/dev/` directory, so you normally **do not** add one file per service under `bootstrap/applications/`.
+You now have one ADO pipeline per YAML file; repeat this pattern later for `pipelines/ci/cartservice.yml`, etc. (Phase 5).
 
-### 4) Add CI pipeline for frontend
+---
 
-1. Create pipeline file:
-   - `pipelines/ci/frontend.yml`
-2. Pipeline stages should do:
-   - checkout
-   - app tests/lint
-   - container build
-   - Trivy scan
-   - push image to dev ACR
-   - capture pushed image digest
-   - update `gitops/envs/dev/values-frontend.yaml` with new digest
-   - open PR with that GitOps change
-3. Configure Azure DevOps service connection:
-   - rights to push to dev ACR
-   - repo permissions to open PR
-4. Azure checks before first pipeline run:
+#### 2b) Confirm the control repository (where ADO reads YAML and source)
+
+The **control repository** is the GitHub repo Azure DevOps uses for:
+
+- The pipeline definition (`pipelines/ci/frontend.yml`)
+- `checkout: self` (Dockerfile, charts, GitOps paths on the agent)
+
+**Check:**
+
+1. **Pipelines** → open **`ci-frontend`** (or your name) → **Edit**.
+2. At the **top of the editor**, confirm:
+   - **Repository** = your GitHub fork (e.g. `your-org/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability`), **not** a stale or template repo name.
+   - **Branch** = `main`.
+
+If the wrong repo appears: **⋮** next to the pipeline name → **Settings** / **Triggers** → change **repository** or reconnect GitHub. Details: [pipelines/README.md — pipeline source after a GitHub rename](../../pipelines/README.md#azure-devops-pipeline-source-after-a-github-rename).
+
+**Match YAML to your fork:** In `pipelines/ci/frontend.yml`, variable **`GITHUB_REPOSITORY`** must be `your-org/your-repo` (GitHub slug). That is where the pipeline opens the digest-update PR—it can differ from the ADO display name but must match the repo you connected in 2a.
+
+---
+
+#### 2c) Variable group and `GITHUB_TOKEN` (GitHub PR step)
+
+The job references:
+
+```yaml
+variables:
+  - group: 'variable-group-for-microservices'
+```
+
+**Create or verify in Azure DevOps:**
+
+1. **Pipelines** → **Library** → **+ Variable group**.
+2. Name: **`variable-group-for-microservices`** (must match the YAML exactly).
+3. Add a **secret** variable:
+   - **Name:** `GITHUB_TOKEN`
+   - **Value:** a GitHub **personal access token** (classic) or fine-grained token with at least:
+     - **Contents:** read and write (to push a branch)
+     - **Pull requests:** read and write (to open the PR)
+     - Or classic scope: **`repo`** on the target repository
+4. **Save** the variable group.
+5. **Pipeline permissions:** On the variable group, **Pipeline permissions** → allow access for the **`ci-frontend`** pipeline (or “Grant access permission to all pipelines” during setup).
+
+Without this token, the build may push to ACR but **fail** when creating the GitOps PR.
+
+---
+
+#### 2d) Service connection `promotion-azure-connection` (Azure login + ACR push)
+
+The pipeline uses the **Azure Resource Manager** service connection named in YAML:
+
+```yaml
+AZURE_SUBSCRIPTION_CONNECTION: promotion-azure-connection
+```
+
+Steps run `az acr login`, `docker build`, and `docker push` under that identity.
+
+**Create or verify in Azure DevOps:**
+
+1. **Project settings** → **Service connections** → **New service connection** → **Azure Resource Manager** (Workload Identity Federation or Service principal—either is fine if configured for your subscription).
+2. Name the connection **`promotion-azure-connection`** (or change the name in `pipelines/ci/frontend.yml` to match yours).
+3. Scope it to the **subscription** where Terraform created **`acrboutiquedevweu`**.
+
+**Azure RBAC (on the dev registry):** The service principal behind this connection needs **`AcrPush`** (and typically **`AcrPull`**) on registry **`acrboutiquedevweu`**. Terraform can grant this via `promotion_service_principal_object_id` in `infra/terraform/envs/dev/terraform.tfvars`; otherwise assign roles in Portal or CLI:
+
+```bash
+# Object ID = enterprise app behind the service connection (see ADO → Manage Service Principal)
+az role assignment create \
+  --assignee <SP_OBJECT_ID> \
+  --role AcrPush \
+  --scope $(az acr show -n acrboutiquedevweu --query id -o tsv)
+```
+
+If you renamed the ACR in Terraform, update **`DEV_ACR_NAME`** / **`DEV_ACR_LOGIN_SERVER`** in `pipelines/ci/frontend.yml` to match.
+
+**Authorize the pipeline:** First run may prompt **Permit** for the service connection and variable group—approve so the job is not blocked.
+
+---
+
+#### 2e) Pre-flight Azure checks (optional, from your machine)
+
+Confirm the registry exists before the first run:
+
+```bash
+az acr show -n acrboutiquedevweu -o table
+az acr repository list -n acrboutiquedevweu -o table
+```
+
+### 3) Run CI and merge GitOps PR
+
+1. **Run pipeline** manually (triggers are off in YAML by design).
+2. After success, confirm image in ACR:
+
    ```bash
-   az account show -o table
-   az acr show -n acrboutiquedevweu -o table
-   az acr repository list -n acrboutiquedevweu -o table
-   ```
-5. GitHub token checks for PR automation:
-   - store token in Azure DevOps secret variable `GITHUB_TOKEN`
-   - token needs `repo` scope for branch push + pull request creation
-   - protect variable group permissions so only trusted pipelines can use it
-6. If you **renamed this repo on GitHub**, retarget each Azure DevOps pipeline at the new **control repository** (repository picker when editing the pipeline). See [pipelines/README.md](../../pipelines/README.md) → **Azure DevOps pipeline source after a GitHub rename**.
-
-### 5) Validate pipeline output
-
-After pipeline runs, confirm:
-
-1. Image exists in ACR:
-   ```bash
-   az acr repository show-tags --name <DEV_ACR_NAME> --repository frontend -o table
-   ```
-2. GitOps PR contains digest update:
-   - `image.digest: sha256:...`
-3. Merge GitOps PR to `main`.
-4. Optional verification of digest in ACR:
-   ```bash
-   az acr manifest list-metadata --registry acrboutiquedevweu --name frontend -o table
+   az acr repository show-tags --name acrboutiquedevweu --repository frontend -o table
    ```
 
-### 6) Argo CD deployment verification
+3. Open the GitHub PR created by the pipeline; verify only `gitops/envs/dev/values-frontend.yaml` changes and `image.digest` is `sha256:<64-hex>`.
+4. **Merge** the PR to `main`.
 
-1. In Argo CD UI:
-   - `frontend-dev` app should become `Healthy` + `Synced`
-2. CLI checks:
-   ```bash
-   kubectl get deploy,po,svc,ing -n dev
-   kubectl describe ingress -n dev
-   ```
-3. Confirm running image uses digest (not only mutable tag):
-   ```bash
-   kubectl get pod -n dev -o jsonpath='{range .items[*]}{.metadata.name}{" => "}{.spec.containers[*].image}{"\n"}{end}'
-   ```
+Optional local render check before merge:
 
-### 7) HTTPS and DNS checks
+```bash
+helm template frontend charts/frontend -f gitops/envs/dev/values-frontend.yaml
+```
 
-1. Confirm DNS record for frontend host:
-   ```bash
-   nslookup <dev-frontend-host>
-   ```
-2. Confirm TLS certificate ready:
-   ```bash
-   kubectl get certificate -A
-   kubectl get challenges.acme.cert-manager.io -A
-   ```
-3. Browser/curl test:
-   ```bash
-   curl -I https://<dev-frontend-host>
-   ```
-   Expect `200` or application redirect, and valid cert chain.
+### 4) Argo CD and runtime verification
+
+```bash
+kubectl get application frontend-dev -n argocd
+kubectl get deploy,po,svc,ing -n dev
+kubectl get pod -n dev -o jsonpath='{range .items[*]}{.metadata.name}{" => "}{.spec.containers[*].image}{"\n"}{end}'
+```
+
+In Argo CD UI: **`frontend-dev`** → **Healthy** / **Synced**.
+
+### 5) HTTPS and DNS
+
+```bash
+nslookup dev.boutique.example.com    # replace with your ingress.host
+kubectl get certificate -n dev
+curl -I https://dev.boutique.example.com
+```
+
+Expect **HTTP 200** (or app redirect) and a valid certificate chain once DNS and cert-manager DNS-01 have completed.
+
+### 6) Optional — replace scaffold image with real frontend source
+
+The shipped `apps/frontend/Dockerfile` builds a minimal nginx placeholder. To use the real Online Boutique UI:
+
+1. Add source under `apps/frontend/` (subtree or copy from [microservices-demo](https://github.com/GoogleCloudPlatform/microservices-demo)) — see [apps/README.md](../../apps/README.md).
+2. Update the Dockerfile and CI lint/test steps in `pipelines/ci/frontend.yml`.
+3. Re-run CI and merge the new digest PR.
+
+## Screenshots (validation)
 
 ### Boutique App Frontend Development is healthy and synced on Argo CD:
 
@@ -178,14 +228,14 @@ After pipeline runs, confirm:
 
 ![alt text](./../diagrams/boutique-frontend-dev-hot-products.png)
 
+## Done checklist
 
-### 8) Definition of done for Phase 3
-
-- `frontend` is managed by Argo CD from GitOps manifests.
-- CI pipeline pushes image to dev ACR and updates digest in GitOps via PR.
-- `https://<dev-frontend-host>` is reachable with valid TLS.
-- Workload runs on intended `dev` nodes via selectors/tolerations.
+- [ ] `pipelines/ci/frontend.yml` registered and a successful run pushed to **dev ACR**.
+- [ ] GitOps PR merged; `gitops/envs/dev/values-frontend.yaml` has a real **digest**, not a placeholder.
+- [ ] Argo CD **`frontend-dev`** is **Healthy** / **Synced**.
+- [ ] `https://<dev-frontend-host>` returns success with valid TLS.
+- [ ] Pods use the digest-form image reference (`...@sha256:...` or repo+digest per chart template).
 
 ---
 
-[← Phase 2](phase-02-cluster-bootstrap.md) · [Index](README.md) · [Phase 4 →](phase-04-promotion-pipeline.md)
+[← Phase 2](phase-02-cluster-bootstrap.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 4 →](phase-04-promotion-pipeline.md)

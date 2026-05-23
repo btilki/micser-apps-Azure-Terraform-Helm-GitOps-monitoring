@@ -1,61 +1,83 @@
 # Phase 8 — Hardening
 
-[← Phase 7](phase-07-prod-environment.md) · [Index](README.md) · [Phase 9 →](phase-09-polish.md)
+[← Phase 7](phase-07-prod-environment.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 9 →](phase-09-polish.md)
 
-**Goal:** Apply operational/security guardrails across runtime, CI, and cost.
+**Goal:** Confirm operational and security guardrails are active across runtime, CI, and cost — most YAML already lives in Git; you validate and tune.
 
-## Process (brief)
+## Why hardening is a separate phase
 
-Roll out hardening in `dev` first, then promote to `stage` and `prod`. Use explicit policies and validate each control before promoting to the next environment.
+Dev/stage/prod need **predictable blast radius**: default-deny networking, pod security levels, resource caps, vulnerability gates on images, and spend alerts. Applying everything at once before apps run causes friction; this phase verifies controls after workloads are stable.
+
+## This repository (already present)
+
+| Control | Location |
+|---------|----------|
+| Pod Security labels (`baseline` dev, `restricted` stage/prod) | `gitops/platform/{dev,stage,prod}/namespace.yaml` |
+| Default-deny + baseline ingress + core egress NetworkPolicies | `gitops/platform/{dev,stage,prod}/networkpolicy-*.yaml` |
+| ResourceQuota / LimitRange | `gitops/platform/{dev,stage,prod}/resourcequota.yaml`, `limitrange.yaml` |
+| Helm `securityContext` defaults | `charts/*/values.yaml`, deployment templates |
+| CI Trivy gate (HIGH+CRITICAL fail build) | `pipelines/ci/*.yml` |
+| Optional subscription budget (80% notification) | `infra/terraform/envs/bootstrap/` (`enable_subscription_budget`, `budget_notification_emails`) |
+| Policy folder index | [policies/README.md](../../policies/README.md) |
+
+Argo CD Applications **`platform-dev`**, **`platform-stage`**, **`platform-prod`** sync the `gitops/platform/<env>/` trees. You normally **edit and PR** those files rather than creating parallel copies under `policies/`.
 
 ## Step-by-step
 
 ### Prerequisites
 
-1. Ensure stage and prod are stable before applying stronger restrictions:
-   ```bash
-   kubectl get applications -n argocd
-   kubectl get pods -n stage
-   kubectl get pods -n prod
-   ```
+```bash
+kubectl get applications -n argocd
+kubectl get pods -n stage,prod
+```
 
-### GitHub / GitOps
+### 1) Validate GitOps platform policies
 
-2. Use policy manifests in repo (`policies/` and/or GitOps platform paths) for network isolation:
-   - default deny
-   - explicit allow paths needed by services
-3. Roll out policy changes in PRs per environment order: `dev -> stage -> prod`.
-4. Apply Pod Security labels:
-   - `dev`: baseline
-   - `stage`, `prod`: restricted
-5. Add/update `ResourceQuota` and `LimitRange` in each environment namespace.
+After any policy PR merges, confirm objects exist:
 
-### Azure DevOps
+```bash
+kubectl get networkpolicy,resourcequota,limitrange -n dev
+kubectl get networkpolicy,resourcequota,limitrange -n stage
+kubectl get networkpolicy,resourcequota,limitrange -n prod
+kubectl get ns dev stage prod --show-labels
+```
 
-6. In CI templates/pipelines, enforce Trivy gate for HIGH/CRITICAL findings.
-7. Run pipeline validation on a test PR and confirm vulnerable images fail the quality gate.
+If a service cannot reach a dependency, adjust **egress** NetworkPolicies in `gitops/platform/<env>/networkpolicy-egress-core.yaml` (or service-specific policies) and re-sync **`platform-*`**.
 
-### Azure
+**Rollout order for changes:** `dev` → `stage` → `prod` (separate PRs recommended).
 
-8. In Azure Portal, configure budget alerts (minimum 80% threshold) for subscription or resource groups.
-9. Confirm notification routing for budget alerts (email/action group).
+### 2) CI vulnerability gate
 
-### Argo CD / Kubernetes validation
+Trivy runs in each `pipelines/ci/<service>.yml`. Trigger a pipeline on a known-good image and confirm success; optionally test failure policy on a deliberate vulnerable base tag in a throwaway branch.
 
-10. Validate each environment after policy rollout:
-   ```bash
-   kubectl get networkpolicy,resourcequota,limitrange -A
-   kubectl get ns --show-labels
-   ```
-11. Validate traffic behavior for key paths (frontend -> cart/product/catalog flows).
+### 3) Azure budget alerts
+
+In `infra/terraform/envs/bootstrap/terraform.tfvars`, set `enable_subscription_budget = true` and `budget_notification_emails`, then:
+
+```bash
+cd infra/terraform/envs/bootstrap
+terraform plan
+terraform apply
+```
+
+Confirm notification routing in Azure Portal (**Cost Management → Budgets**).
+
+### 4) Application traffic smoke
+
+With owned services running in dev:
+
+```bash
+kubectl get pods -n dev
+# Exercise storefront; watch for NetworkPolicy drops in workload logs if paths fail
+```
 
 ## Done checklist
 
-- Network access is least-privilege.
-- Pod Security and resource limits are enforced.
-- CI blocks high-risk vulnerabilities.
-- Budget notifications are active.
+- [ ] NetworkPolicies, quotas, and limit ranges present in **dev**, **stage**, and **prod**.
+- [ ] Namespace Pod Security labels match design (baseline / restricted).
+- [ ] CI fails on HIGH/CRITICAL Trivy findings for service pipelines you use.
+- [ ] Budget notification configured (if using bootstrap budget feature).
 
 ---
 
-[← Phase 7](phase-07-prod-environment.md) · [Index](README.md) · [Phase 9 →](phase-09-polish.md)
+[← Phase 7](phase-07-prod-environment.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 9 →](phase-09-polish.md)

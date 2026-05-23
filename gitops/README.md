@@ -1,6 +1,6 @@
 # GitOps (ArgoCD)
 
-Layout matches the GitOps model described in the repository [README.md](../README.md) (**System overview** + **Layout**):
+Layout matches the GitOps model in [ARCHITECTURE.md](../ARCHITECTURE.md) and [README.md](../README.md):
 
 | Path | Purpose |
 |------|---------|

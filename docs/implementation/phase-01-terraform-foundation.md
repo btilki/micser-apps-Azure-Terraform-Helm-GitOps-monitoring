@@ -1,8 +1,14 @@
 # Phase 1 — Terraform foundation
 
-[← Phase 0](phase-00-repo-scaffolding.md) · [Index](README.md) · [Phase 2 →](phase-02-cluster-bootstrap.md)
+[← Phase 0](phase-00-repo-scaffolding.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 2 →](phase-02-cluster-bootstrap.md)
 
 **Goal:** Build Azure foundation (state, shared cluster/network, env stacks) and confirm `kubectl` access.
+
+## Why this phase matters
+
+**Terraform** is the source of truth for Azure: one **shared** AKS cluster and network, plus per-environment **ACR** and **Key Vault** so promotion can copy immutable digests without sharing one registry. **Remote state** (bootstrap stack) lets CI and operators collaborate without local state files.
+
+Modules and env roots already exist under `infra/terraform/` — you supply `terraform.tfvars` / `backend.hcl` and run `apply`.
 
 ## Process (brief)
 
@@ -85,4 +91,4 @@ Authenticate to Azure, create Terraform remote state, deploy shared stack, deplo
 
 ---
 
-[← Phase 0](phase-00-repo-scaffolding.md) · [Index](README.md) · [Phase 2 →](phase-02-cluster-bootstrap.md)
+[← Phase 0](phase-00-repo-scaffolding.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 2 →](phase-02-cluster-bootstrap.md)

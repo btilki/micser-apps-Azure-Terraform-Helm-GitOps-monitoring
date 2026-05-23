@@ -1,6 +1,6 @@
 # Phase 9 — Polish
 
-[← Phase 8](phase-08-hardening.md) · [Index](README.md) · [Phase 10 →](phase-10-destroy-infrastructure.md)
+[← Phase 8](phase-08-hardening.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 10 →](phase-10-destroy-infrastructure.md)
 
 **Goal:** Make the project handover-ready with observability, smoke checks, and concise ops docs.
 
@@ -65,10 +65,10 @@ Finalize operator experience: dashboards for visibility, smoke tests for release
 | Promotion smoke | `pipelines/templates/promote-image.yml` parameter `smokeBaseUrl`; set in `promote-to-stage.yml` / `promote-to-prod.yml` |
 | Release checklist | [docs/runbooks/release-verification.md](../runbooks/release-verification.md) |
 | Grafana / Alertmanager ops | [docs/runbooks/grafana-dashboards.md](../runbooks/grafana-dashboards.md) |
-| Root release + ops links | [README.md](../../README.md) |
+| Root release + ops links | [DEPLOYMENT.md](../../DEPLOYMENT.md), [TROUBLESHOOTING.md](../../TROUBLESHOOTING.md) |
 
 **Do manually:** import/build specific Grafana JSON in the UI if defaults are not enough; complete one dry-run release (small change) and confirm alerts stay normal (step 10 above).
 
 ---
 
-[← Phase 8](phase-08-hardening.md) · [Index](README.md) · [Phase 10 →](phase-10-destroy-infrastructure.md)
+[← Phase 8](phase-08-hardening.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 10 →](phase-10-destroy-infrastructure.md)

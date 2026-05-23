@@ -1,6 +1,6 @@
 # Runbooks
 
-Operational procedures for **boutique** prod and shared platform. Pair with [Phase 7 — Prod environment](../implementation/phase-07-prod-environment.md).
+Operational procedures for **boutique** prod and shared platform. Index: [TROUBLESHOOTING.md](../../TROUBLESHOOTING.md). Pair with [Phase 7](../implementation/phase-07-prod-environment.md).
 
 | Runbook | Use when |
 |---------|----------|

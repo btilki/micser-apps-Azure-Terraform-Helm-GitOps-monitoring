@@ -1,8 +1,12 @@
 # Phase 6 — Stage environment
 
-[← Phase 5](phase-05-fan-out-services.md) · [Index](README.md) · [Phase 7 →](phase-07-prod-environment.md)
+[← Phase 5](phase-05-fan-out-services.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 7 →](phase-07-prod-environment.md)
 
 **Goal:** Stand up and validate a stable **`stage`** namespace: platform guardrails, Argo CD **AppProject** boundaries, workloads using **stage ACR** images pinned by **digest**, and a reachable **HTTPS** entry (ingress + cert-manager) where you expose one.
+
+## Why this phase matters
+
+**Stage** is the last automated GitOps environment before prod: same cluster isolation patterns as prod, but Argo may auto-sync (unlike prod’s manual gate). Promotion pipelines update `gitops/envs/stage/values-*.yaml` so stage always runs images that were validated in dev.
 
 ## This repository
 
@@ -96,4 +100,4 @@ Root Application **`boutique-root`** syncs `gitops/bootstrap/applications/`; you
 
 ---
 
-[← Phase 5](phase-05-fan-out-services.md) · [Index](README.md) · [Phase 7 →](phase-07-prod-environment.md)
+[← Phase 5](phase-05-fan-out-services.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 7 →](phase-07-prod-environment.md)

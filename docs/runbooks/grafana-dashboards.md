@@ -4,7 +4,7 @@
 
 ## Access
 
-- Grafana URL is documented in the root [README](../../README.md) (e.g. `https://grafana.<your-domain>`).
+- Grafana URL: configure per your ingress (e.g. `https://grafana.<your-domain>`); see [DEPLOYMENT.md](../../DEPLOYMENT.md).
 - Sign-in uses whatever you configured on `kube-prometheus-stack` (OAuth / admin secret). Retrieve admin bootstrap secret only for break-glass:
   ```bash
   kubectl get secret -n monitoring kube-prometheus-stack-grafana -o jsonpath='{.data.admin-password}' | base64 -d && echo

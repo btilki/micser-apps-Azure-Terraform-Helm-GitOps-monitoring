@@ -1,6 +1,6 @@
 # Phase 10 — Destroy infrastructure (teardown)
 
-[← Phase 9](phase-09-polish.md) · [Index](README.md)
+[← Phase 9](phase-09-polish.md) · [Deployment](../../DEPLOYMENT.md)
 
 **Goal:** Tear down all Terraform-managed Azure resources safely.
 
@@ -86,4 +86,4 @@ Destroy in reverse apply order so remote state remains available until the end.
 
 ---
 
-[← Phase 9](phase-09-polish.md) · [Index](README.md)
+[← Phase 9](phase-09-polish.md) · [Deployment](../../DEPLOYMENT.md)

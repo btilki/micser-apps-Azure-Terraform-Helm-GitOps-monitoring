@@ -1,6 +1,6 @@
 # Phase 5 — Fan-out remaining services
 
-[← Phase 4](phase-04-promotion-pipeline.md) · [Index](README.md) · [Phase 6 →](phase-06-stage-environment.md)
+[← Phase 4](phase-04-promotion-pipeline.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 6 →](phase-06-stage-environment.md)
 
 **Goal:** Complete **v1** application coverage in `dev`: all **owned** services use this repo’s CI/GitOps; the **rest of the boutique path** can use **upstream Google** images when you choose to wire them in.
 
@@ -102,4 +102,4 @@ For **owned** services: ensure real digests in GitOps (via CI or manual), run pi
 
 ---
 
-[← Phase 4](phase-04-promotion-pipeline.md) · [Index](README.md) · [Phase 6 →](phase-06-stage-environment.md)
+[← Phase 4](phase-04-promotion-pipeline.md) · [Deployment](../../DEPLOYMENT.md) · [Phase 6 →](phase-06-stage-environment.md)
