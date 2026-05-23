@@ -31,7 +31,7 @@ Tool table: [README.md — Prerequisites](README.md#prerequisites).
 
 ## Fork setup (replace placeholders)
 
-**Canonical GitHub remote:** `https://github.com/btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability.git`
+**Canonical GitHub remote:** `https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring.git`
 
 If you fork or rename the repo, update:
 
@@ -45,7 +45,7 @@ If you fork or rename the repo, update:
 Find leftovers:
 
 ```bash
-rg 'btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability|YOUR_ORG' 
+rg 'btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring|YOUR_ORG' 
 rg 'YOUR_TENANT_ID' gitops/apps/platform
 ```
 

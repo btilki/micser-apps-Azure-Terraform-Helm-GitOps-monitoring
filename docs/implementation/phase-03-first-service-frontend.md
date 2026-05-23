@@ -96,7 +96,7 @@ The **control repository** is the GitHub repo Azure DevOps uses for:
 
 1. **Pipelines** → open **`ci-frontend`** (or your name) → **Edit**.
 2. At the **top of the editor**, confirm:
-   - **Repository** = your GitHub fork (e.g. `your-org/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability`), **not** a stale or template repo name.
+   - **Repository** = your GitHub fork (e.g. `your-org/micser-apps-Azure-Terraform-Helm-GitOps-monitoring`), **not** a stale or template repo name.
    - **Branch** = `main`.
 
 If the wrong repo appears: **⋮** next to the pipeline name → **Settings** / **Triggers** → change **repository** or reconnect GitHub. Details: [pipelines/README.md — pipeline source after a GitHub rename](../../pipelines/README.md#azure-devops-pipeline-source-after-a-github-rename).

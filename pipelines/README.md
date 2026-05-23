@@ -35,7 +35,7 @@ Do the following for **every** registered pipeline (`pipelines/ci/*.yml`, `pipel
 
 2. **Azure DevOps — retarget the pipeline**  
    **Pipelines** → select the pipeline → **Edit**.  
-   At the top of the YAML editor, confirm **Repository** and **Branch** (`main`) match the new GitHub repo (`btilki/microservice-apps-on-Azure-using-Terraform-Helm-GitOps-and-observability` or your fork).  
+   At the top of the YAML editor, confirm **Repository** and **Branch** (`main`) match the new GitHub repo (`btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring` or your fork).  
    If the header still shows the old repository: use **⋮** (next to the pipeline name) → **Settings** / **Triggers** (wording varies by UI version) and change the **GitHub connection** + **repository** selection, or **Disconnect** the old repo link and **Choose repository** again from the GitHub picker.
 
 3. **Save** the pipeline definition and run **Run pipeline** once to confirm checkout and variable groups still resolve.

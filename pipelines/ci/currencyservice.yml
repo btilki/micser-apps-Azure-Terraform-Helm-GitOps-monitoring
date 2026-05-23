@@ -12,7 +12,7 @@ variables:
   IMAGE_REPOSITORY: currencyservice
   GITOPS_VALUES_FILE: gitops/envs/dev/values-currencyservice.yaml
   AZURE_SUBSCRIPTION_CONNECTION: promotion-azure-connection
-  GITHUB_REPOSITORY: btilki/microservice-apps-on-azure-using-terraform-helm-gitops-and-observability
+  GITHUB_REPOSITORY: btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring
 
 stages:
   - stage: BuildScanPush
