@@ -1,6 +1,6 @@
-# Online Boutique Microservice App on Azure
+# Online Boutique Microservice Apps on Azure
 
-Mono-repo for Google’s [microservices-demo-app](https://github.com/GoogleCloudPlatform/microservices-demo) on **Azure Kubernetes Service (AKS)** with **Terraform**, **Azure DevOps** CI/CD, **Argo CD** GitOps, and **kube-prometheus-stack** observability.
+Mono-repo for Google’s [microservices-demo-apps](https://github.com/GoogleCloudPlatform/microservices-demo) on **Azure Kubernetes Service (AKS)** with **Terraform**, **Azure DevOps** CI/CD, **Argo CD** GitOps, and **kube-prometheus-stack** observability.
 
 ## Documentation
 

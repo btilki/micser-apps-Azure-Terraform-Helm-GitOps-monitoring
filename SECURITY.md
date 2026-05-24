@@ -204,7 +204,7 @@ Guardrails live in `gitops/platform/<env>/` (NetworkPolicy, PSS labels, quotas).
 ## Observability and alerting
 
 - Alertmanager routes in `gitops/apps/platform/kube-prometheus-stack/values.yaml` — replace `REPLACE_*` webhook/email placeholders before relying on pages.
-- Routes cover crash loops, ingress 5xx, certificate expiry.
+- Routes cover crash loops, ingress 5xx, certificate expiry. Detail: [docs/observability/ingress-5xx-and-cert-alerts.md](docs/observability/ingress-5xx-and-cert-alerts.md).
 
 Configure in [Phase 7](docs/implementation/phase-07-prod-environment.md).
 

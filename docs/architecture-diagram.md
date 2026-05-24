@@ -20,39 +20,6 @@ How a code change travels from the developer's keyboard to a running pod.
 
 *Rendered export: [PNG](../docs/diagrams/01-cicd-flow.png) (in-repo under `docs/diagrams/`)*
 
-```mermaid
-flowchart LR
-  dev["Developer<br/>(Cursor IDE)"]
-  gh["GitHub<br/>mono-repo"]
-  ado["Azure DevOps<br/>CI / promotion pipelines"]
-  trivy["Trivy<br/>(in CI)"]
-  acrd["ACR dev"]
-  acrs["ACR stage"]
-  acrp["ACR prod"]
-  argo["ArgoCD<br/>(in cluster)"]
-  aks["AKS cluster"]
-  user["End user"]
-  le["Let's Encrypt"]
-  dns["Azure DNS<br/>example.com"]
-
-  dev -->|git push| gh
-  gh -->|webhook| ado
-  ado --> trivy
-  ado -->|push image| acrd
-  ado -->|bump digest in gitops/| gh
-  ado -.->|az acr import| acrs
-  ado -.->|az acr import| acrp
-  gh -->|watch gitops/| argo
-  argo -->|sync manifests| aks
-  acrd -.->|pull dev images| aks
-  acrs -.->|pull stage images| aks
-  acrp -.->|pull prod images| aks
-  user -->|HTTPS| dns
-  dns --> aks
-  aks -.->|DNS-01| le
-  le -.->|certs| aks
-```
-
 ---
 
 ## Diagram 2 — Azure resource layout
@@ -63,51 +30,6 @@ What Terraform creates in the subscription and how the resource groups are scope
 
 *Rendered export: [PNG](../docs/diagrams/02-azure-resources.png)*
 
-```mermaid
-flowchart TB
-  subgraph state["rg-tfstate-weu"]
-    sa["Storage Account<br/>stboutiquetfstateweu<br/>(Terraform remote state)"]
-  end
-
-  subgraph shared["rg-boutique-shared-weu"]
-    direction TB
-    vnet["VNet 10.20.0.0/22<br/>+ subnets (AKS, PE)<br/>+ NSG"]
-    pip["Public IP<br/>(static, ingress)"]
-    pdz["Private DNS zones<br/>privatelink.azurecr.io<br/>privatelink.vaultcore.azure.net"]
-    azdns["Azure DNS zone<br/>example.com"]
-    la["Log Analytics<br/>log-boutique-weu"]
-    aksc["AKS cluster<br/>aks-boutique-weu"]
-    np["Node pools:<br/>system · npdev · npstg · npprod"]
-    aksc --- np
-  end
-
-  subgraph rgdev["rg-boutique-dev-weu"]
-    acrd["acrboutiquedevweu<br/>+ private endpoint"]
-    kvd["kv-boutique-dev-weu<br/>+ private endpoint"]
-  end
-  subgraph rgstg["rg-boutique-stage-weu"]
-    acrs["acrboutiquestageweu<br/>+ private endpoint"]
-    kvs["kv-boutique-stage-weu<br/>+ private endpoint"]
-  end
-  subgraph rgprd["rg-boutique-prod-weu"]
-    acrp["acrboutiqueprodweu<br/>+ private endpoint"]
-    kvp["kv-boutique-prod-weu<br/>(purge protection)"]
-  end
-
-  aad["Azure AD (Entra)<br/>UAMIs · AAD groups"]
-
-  vnet -.-> pdz
-  vnet -.-> aksc
-  acrd -.->|PE in| vnet
-  acrs -.->|PE in| vnet
-  acrp -.->|PE in| vnet
-  kvd -.->|PE in| vnet
-  kvs -.->|PE in| vnet
-  kvp -.->|PE in| vnet
-  aksc -.->|logs| la
-  aksc -->|federated identity| aad
-```
-
 ---
 
 ## Diagram 3 — Inside the AKS cluster
@@ -117,59 +39,6 @@ What's running inside the cluster, who controls what, and how traffic flows.
 ![Inside the AKS cluster](../docs/diagrams/03-inside-cluster.png)
 
 *Rendered export: [PNG](../docs/diagrams/03-inside-cluster.png)*
-
-```mermaid
-flowchart TB
-  subgraph external["Outside the cluster"]
-    user["End user (HTTPS)"]
-    le["Let's Encrypt"]
-    azdns["Azure DNS<br/>example.com"]
-    kvs_ext["Key Vaults<br/>(per env)"]
-    acrs_ext["ACRs<br/>(per env)"]
-  end
-
-  subgraph platform["Platform namespaces"]
-    argo["argocd"]
-    nginx["ingress-nginx"]
-    cm["cert-manager"]
-    edns["external-dns"]
-    prom["monitoring<br/>(Prometheus + Grafana<br/>+ Alertmanager)"]
-    csi["CSI Secrets Store<br/>+ Azure provider"]
-  end
-
-  subgraph workloads["Workload namespaces (one per env)"]
-    direction LR
-    nsd["ns: dev<br/>frontend, cart, catalog,<br/>currency, payment, shipping,<br/>email, checkout, ads, recs,<br/>loadgen + redis"]
-    nss["ns: stage<br/>(same set)"]
-    nsp["ns: prod<br/>(no loadgen)"]
-  end
-
-  user --> nginx
-  nginx --> nsp
-  nginx --> nss
-  nginx --> nsd
-  cm -->|DNS-01| azdns
-  cm -->|cert request| le
-  edns -->|A records| azdns
-  argo -->|apply manifests| nginx
-  argo -->|apply manifests| cm
-  argo -->|apply manifests| edns
-  argo -->|apply manifests| prom
-  argo -->|apply manifests| nsd
-  argo -->|apply manifests| nss
-  argo -->|apply manifests| nsp
-  prom -.->|scrape| nsd
-  prom -.->|scrape| nss
-  prom -.->|scrape| nsp
-  prom -.->|scrape| nginx
-  csi -.->|mount secrets| nsd
-  csi -.->|mount secrets| nss
-  csi -.->|mount secrets| nsp
-  csi -->|fetch| kvs_ext
-  acrs_ext -.->|pull images| nsd
-  acrs_ext -.->|pull images| nss
-  acrs_ext -.->|pull images| nsp
-```
 
 ---
 

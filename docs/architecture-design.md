@@ -99,7 +99,7 @@ One physical AKS cluster, three logical environments. Isolation layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ AKS cluster: aks-boutique-weu                              │
+│ AKS cluster: aks-boutique-weu                               │
 │                                                             │
 │  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐        │
 │  │ ns: dev     │   │ ns: stage   │   │ ns: prod    │        │
