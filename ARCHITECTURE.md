@@ -1,6 +1,6 @@
 # Architecture
 
-System design for **Online Boutique on Azure**: one AKS cluster, three logical environments, Terraform foundation, Azure DevOps CI, Argo CD GitOps, and per-environment container registries.
+System design for **Online Boutique app on Azure**: one AKS cluster, three logical environments, Terraform foundation, Azure DevOps CI, Argo CD GitOps, and per-environment container registries.
 
 Extended design notes (naming, cost, ADRs): [docs/architecture-design.md](docs/architecture-design.md).
 
@@ -85,7 +85,7 @@ Only **frontend** typically has a public Ingress; other owned services are `Clus
 
 GitOps layout: [gitops/README.md](gitops/README.md). Pipeline details: [pipelines/README.md](pipelines/README.md).
 
-Promotion RBAC pre-check: [DEPLOYMENT.md — Promotion SP roles](DEPLOYMENT.md#promotion-service-principal-roles).
+Promotion RBAC pre-check: [DEPLOYMENT.md — Promotion SP roles](DEPLOYMENT.md#promotion-service-principal-roles). Identity, Key Vault, and Workload Identity: [SECURITY.md — Identity, RBAC, and secrets](SECURITY.md#identity-rbac-and-secrets).
 
 ## Observability
 

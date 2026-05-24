@@ -274,25 +274,28 @@ This pattern guarantees that what's tested in stage is **byte-identical** to wha
 
 ## 9. Identity, RBAC, secrets
 
-**Azure side:**
-- AAD groups: `g-boutique-devs`, `g-boutique-leads`, `g-boutique-sre`.
-- Three User-Assigned Managed Identities (UAMIs), one per env, federated to Kubernetes ServiceAccounts via Workload Identity:
-  - `id-boutique-dev` — federated to SAs in `dev` ns; granted `Key Vault Secrets User` on `kv-boutique-dev-weu`.
-  - `id-boutique-stage` — same for stage.
-  - `id-boutique-prod` — same for prod.
-- The **AKS kubelet identity** (`id-aks-boutique-kubelet`) is granted `AcrPull` on **all three** registries.
-- **CI service principal** / workload-identity-federated service connection: `AcrPush` on `acrboutiquedevweu` only.
-- **Promotion service connection**: `Contributor`-equivalent scoped to allow `az acr import` source-read + target-push across all three registries.
+**Operational guide (recommended):** [SECURITY.md](../SECURITY.md#identity-rbac-and-secrets) — clear explanation of CI SP, kubelet, Workload Identity, Key Vault, Git, and Argo CD controls as implemented in this repo.
 
-**Kubernetes side:**
-- Azure AD integration ON; ClusterRoleBindings keyed off AAD group object IDs.
-- Per-namespace Roles: `dev-edit`, `stage-edit` (leads only), `prod-view` (devs read-only), `prod-edit` (SRE).
-- ServiceAccounts annotated with `azure.workload.identity/client-id` for pods that need Azure resources.
+**Design summary:**
 
-**Secrets:**
-- One Key Vault per env: `kv-boutique-dev-weu`, `kv-boutique-stage-weu`, `kv-boutique-prod-weu`.
-- **CSI Secrets Store driver** with the Azure provider mounts secrets as files; optional `syncSecret: true` for charts that need native K8s Secrets.
-- No secrets in Git, ever.
+**Azure side**
+
+- AAD groups (target): `g-boutique-devs`, `g-boutique-leads`, `g-boutique-sre` — namespace-scoped Kubernetes access via group bindings.
+- **Per-env UAMIs** (`id-boutique-dev/stage/prod`): federated to app ServiceAccounts; **Key Vault Secrets User** on matching vault (`kv-boutique-*-weu`).
+- **Platform UAMIs:** cert-manager and external-dns — **DNS Zone Contributor** on the Azure DNS zone (see Phase 2).
+- **AKS kubelet identity:** **AcrPull** on all three env ACRs (Terraform + `az aks attach-acr`).
+- **CI / promotion SP** (`promotion-azure-connection`): **AcrPush** on dev ACR for builds; promotion roles on source/target ACRs and **Reader** on stage/prod RGs — [DEPLOYMENT.md](../DEPLOYMENT.md#promotion-service-principal-roles).
+
+**Kubernetes side**
+
+- Azure AD integration ON; optional ClusterRoleBindings keyed off AAD group object IDs.
+- Per-namespace Roles: e.g. `dev-edit`, `stage-edit` (leads), `prod-view` (devs), `prod-edit` (SRE).
+- ServiceAccounts annotated with `azure.workload.identity/client-id` for pods that call Azure APIs.
+
+**Secrets**
+
+- One Key Vault per env; **CSI Secrets Store driver** mounts secrets — no secrets in Git.
+- Pipeline tokens (`GITHUB_TOKEN`) live in Azure DevOps Library only.
 
 ---
 

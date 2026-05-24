@@ -1,6 +1,6 @@
-# Online Boutique on Azure
+# Online Boutique Microservice App on Azure
 
-Mono-repo for Google’s [microservices-demo](https://github.com/GoogleCloudPlatform/microservices-demo) on **Azure Kubernetes Service (AKS)** with **Terraform**, **Azure DevOps** CI/CD, **Argo CD** GitOps, and **kube-prometheus-stack** observability.
+Mono-repo for Google’s [microservices-demo-app](https://github.com/GoogleCloudPlatform/microservices-demo) on **Azure Kubernetes Service (AKS)** with **Terraform**, **Azure DevOps** CI/CD, **Argo CD** GitOps, and **kube-prometheus-stack** observability.
 
 ## Documentation
 
@@ -8,7 +8,7 @@ Mono-repo for Google’s [microservices-demo](https://github.com/GoogleCloudPlat
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Azure/AKS topology, CI/CD, GitOps, diagrams |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Install and operate (phased guide, fork setup, releases) |
-| [SECURITY.md](SECURITY.md) | Policies, secrets, prod controls, supply chain |
+| [SECURITY.md](SECURITY.md) | Policies, secrets, prod controls, **identity & RBAC** |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common failures and runbook index |
 | [ROADMAP.md](ROADMAP.md) | Scope, status, planned work |
 
