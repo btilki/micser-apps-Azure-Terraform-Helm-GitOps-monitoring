@@ -91,13 +91,6 @@ Promotion RBAC pre-check: [DEPLOYMENT.md — Promotion SP roles](DEPLOYMENT.md#p
 
 - **kube-prometheus-stack** in namespace `monitoring`.
 - Ingress metrics for 5xx alerts; cert-manager metrics for expiry alerts.
-    ### HTTP 5xx meaning (ingress)
-    | Code | Meaning |
-    |------|---------|
-    | **502** | No healthy backend (pods down, wrong port, no Endpoints). |
-    | **503** | Nothing to serve (e.g. `googleDemo.enabled: true` without demo services). |
-    | **504** | Backend too slow (timeout). |
-    | **500** | App or ingress internal error. 
 - Dashboards and alert routing: [docs/runbooks/grafana-dashboards.md](docs/runbooks/grafana-dashboards.md).
 
 Repository layout: [README.md — Repository layout](README.md#repository-layout).
