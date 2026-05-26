@@ -64,7 +64,3 @@ gitops/bootstrap/root-app.yaml
 # User-requested ignores
 .azure-tmp/
 .azure/
-
-# Medium article drafts (local publishing)
-docs/medium/
-
