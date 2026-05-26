@@ -1,0 +1,1007 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?mso-application progid="Word.Document"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:v="urn:schemas-microsoft-com:vml"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+  <w:body>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading1"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Medium Draft — Part 2 of 3</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Suggested Title:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> From Clone to HTTPS: Deploying Online Boutique on Azure (Terraform, AKS, and Your First Pipeline)</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Subtitle:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> Part 2 of 3 — Bootstrap state, install the platform stack, register Azure DevOps CI, and open the dev storefront</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Tags (pick 5):</w:t>
+      </w:r>
+      <w:r>
+        <w:t> Azure, Kubernetes, Terraform, AKS, Helm, Argo CD, DevOps, Tutorial</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Repo Link (use in story):</w:t>
+      </w:r>
+      <w:r>
+        <w:t> </w:t>
+      </w:r>
+      <w:hyperlink w:anchor="https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring">
+        <w:r>
+          <w:rPr><w:u w:val="single"/><w:color w:val="0563C1"/></w:rPr>
+          <w:t>https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring</w:t>
+        </w:r>
+      </w:hyperlink>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Images to Upload to Medium (from repo </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:i/></w:rPr>
+        <w:t>docs/diagrams/</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>):</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>02-azure-resources.png</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — after Terraform section</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>03-inside-cluster.png</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — after cluster bootstrap</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>01-cicd-flow.png</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — in "First CI run" section</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>Optional (Azure DevOps UI): azure-devops-settings-service-connections.png, azure-devops-library-variable-group-github-token.png</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:i/></w:rPr>
+        <w:t>Part 2 of 3. Part 1 explained the design. Here we deploy. Part 3 covers stage/prod promotion and day-two operations.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>In Part 1 I described why this platform uses one AKS cluster. Now we build it, step by step.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>The repository already contains charts, GitOps manifests, and pipeline YAML—you configure identities and run the phases in order.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Repository:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> </w:t>
+      </w:r>
+      <w:hyperlink w:anchor="https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring">
+        <w:r>
+          <w:rPr><w:u w:val="single"/><w:color w:val="0563C1"/></w:rPr>
+          <w:t>https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring</w:t>
+        </w:r>
+      </w:hyperlink>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Detailed checklists live in DEPLOYMENT.md and docs/implementation/phase-*.md. I summarize the spine here so you can publish or follow without opening ten files at once.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Before You Start</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Install and verify:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>terraform version</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>az version</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>kubectl version --client</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>helm version</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>git --version</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>You need an Azure subscription, permission to create resource groups and AKS, a DNS zone you control (for TLS via DNS-01), GitHub (for GitOps PRs from pipelines), and an Azure DevOps project (for CI).</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Fork Setup:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> If you fork the repo, replace placeholders for repoURL in GitOps, GITHUB_REPOSITORY in CI YAML, githubRepository in promote YAML, YOUR_ORG in CODEOWNERS, and tenant/DNS IDs in cert-manager and external-dns Helm values.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Use rg (ripgrep) to find and verify replacements:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>rg 'btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring|YOUR_ORG'</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>rg 'YOUR_TENANT_ID' gitops/apps/platform</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Phase Map (What You Will Run)</w:t>
+      </w:r>
+    </w:p>
+
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="auto"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tr>
+        <w:trPr><w:trHeight w:val="360" w:type="auto"/></w:trPr>
+        <w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Order</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Focus</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Outcome</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>0</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Repo scaffolding</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Branch protection, CODEOWNERS</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>1</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Terraform</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>State, VNet, AKS, per-env ACR and Key Vault</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>2</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Cluster bootstrap</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Ingress, cert-manager, external-dns, monitoring, Argo CD</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>3</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>First service</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Register pipelines/ci/frontend.yml, merge digest PR, HTTPS dev URL</w:t></w:r></w:p></w:tc>
+      </w:tr>
+    </w:tbl>
+
+    <w:p>
+      <w:r>
+        <w:t>Phases 4–7 (promotion, stage, prod) are in Part 3.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Terraform: Bootstrap → Shared → Environments</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Apply in this order only:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>infra/terraform/envs/bootstrap</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — Remote state storage (once per subscription).</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>infra/terraform/envs/shared</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — VNet, Log Analytics, public DNS zone, AKS aks-boutique-weu, static ingress IP.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>infra/terraform/envs/dev</w:t>
+      </w:r>
+      <w:r>
+        <w:t> (then stage/prod when ready) — Environment resource group, dedicated ACR, Key Vault.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Copy each stack's *.tfvars.example → terraform.tfvars and backend.hcl.example → backend.hcl before terraform init and apply.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>[Insert image: 02-azure-resources.png — caption: Bootstrap state, shared platform, and per-environment registries.]</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Why three applies? </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Blast radius and permissions:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> shared infrastructure is long-lived; env stacks can be destroyed or recreated without touching the cluster definition. The dev ACR name in the frontend pipeline must match what Terraform outputs.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>After Phase 1, capture outputs:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>cd infra/terraform/envs/dev && terraform output</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>You will need ACR login server, resource group names, and Key Vault URIs in later steps.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Cluster Bootstrap: Platform Before Apps</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>With kubectl pointed at the cluster, install the shared platform (Phase 2 guide):</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>ingress-nginx</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — HTTP(S) entry; ties to the Terraform static IP.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>cert-manager</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — Certificates via DNS-01 against Azure DNS (Workload Identity, no long-lived cloud secrets in Git).</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>external-dns</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — DNS records aligned with Ingress hosts.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>kube-prometheus-stack</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — Prometheus, Grafana, Alertmanager in monitoring namespace.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Argo CD</w:t>
+      </w:r>
+      <w:r>
+        <w:t> — GitOps controller; app-of-apps from gitops/bootstrap/.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>[Insert image: 03-inside-cluster.png — caption: Platform namespaces and app namespaces on one cluster.]</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Copy gitops/bootstrap/applications/root-app.yaml.example to root-app.yaml with your Git URL, commit hash, and let Argo CD sync the bootstrap Applications. You should see platform apps (ingress, cert-manager, external-dns, Prometheus stack) reconcile.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Sanity checks:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>kubectl get nodes</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>kubectl get applications -n argocd</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>kubectl get pods -n ingress-nginx,cert-manager,argocd</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Do not skip platform sync—frontend TLS depends on cert-manager and external-dns being healthy.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Azure DevOps: Connections the Pipelines Expect</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Register once per project:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="auto"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tr>
+        <w:trPr><w:trHeight w:val="360" w:type="auto"/></w:trPr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Name</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Purpose</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>promotion-azure-connection</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>ARM service connection for AzureCLI@2 (build, push, az acr import)</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>variable-group-for-microservices</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Library group holding secrets</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>GITHUB_TOKEN</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Secret in the group — opens GitOps digest PRs on GitHub</w:t></w:r></w:p></w:tc>
+      </w:tr>
+    </w:tbl>
+
+    <w:p>
+      <w:r>
+        <w:t>[Optional: Insert azure-devops-settings-service-connections.png and azure-devops-library-variable-group-github-token.png.]</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>The promotion service principal needs </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>AcrPush</w:t>
+      </w:r>
+      <w:r>
+        <w:t> on dev ACR for CI; promote pipelines add </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>AcrPull</w:t>
+      </w:r>
+      <w:r>
+        <w:t>/</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>AcrPush</w:t>
+      </w:r>
+      <w:r>
+        <w:t> on stage/prod registries (see DEPLOYMENT.md — Promotion SP roles). The shared template ensures consistent secret resolution across all pipelines.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>First CI Run: Frontend to Dev</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>The repo already ships:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="auto"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tr>
+        <w:trPr><w:trHeight w:val="360" w:type="auto"/></w:trPr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Artifact</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Path</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Helm chart</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>charts/frontend/</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Dev Application</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>gitops/apps/dev/ (via umbrella apps-dev)</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Dev values (digest updated by CI)</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>gitops/envs/dev/values-frontend.yaml</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>CI pipeline</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>pipelines/ci/frontend.yml</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="1500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Dockerfile</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3500" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>apps/frontend/Dockerfile</w:t></w:r></w:p></w:tc>
+      </w:tr>
+    </w:tbl>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Register the Pipeline:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> In Azure DevOps → Pipelines → New pipeline → GitHub → your fork → Existing Azure Pipelines YAML file → path /pipelines/ci/frontend.yml. Triggers are branch filters and push.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>What One Run Does:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>Builds and pushes an image to </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>dev ACR</w:t>
+      </w:r>
+      <w:r>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>Scans with </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Trivy</w:t>
+      </w:r>
+      <w:r>
+        <w:t> (fails on high/critical vulnerabilities).</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListNumber"/></w:pPr>
+      <w:r>
+        <w:t>Opens a GitHub PR updating image.digest in gitops/envs/dev/values-frontend.yaml.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>[Insert image: 01-cicd-flow.png — caption: CI builds to dev ACR; merge the GitOps PR; Argo CD deploys to the dev namespace.]</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Set ingress.host in dev values to your hostname (e.g., dev.boutique.example.com). Keep googleDemo.enabled: false when using your own image—otherwise the chart can route to upstream ExternalName services and skip your build.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>After merge:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>Argo CD syncs the dev frontend Application (auto-sync on dev is typical).</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>Wait for cert-manager to issue the certificate and external-dns to create the record.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>Verify:</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>kubectl get pods -n dev</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="NoSpacing"/></w:pPr>
+      <w:r>
+        <w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr>
+        <w:t>curl -sS -o /dev/null -w "%{http_code}\n" https://dev.boutique.example.com/</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Expect </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>200</w:t>
+      </w:r>
+      <w:r>
+        <w:t> when the rollout and TLS are complete.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Fan-Out (Same Pattern, More Services)</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>v1 builds five owned workloads: </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>frontend</w:t>
+      </w:r>
+      <w:r>
+        <w:t>, </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>cartservice</w:t>
+      </w:r>
+      <w:r>
+        <w:t>, </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>currencyservice</w:t>
+      </w:r>
+      <w:r>
+        <w:t>, </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>productcatalogservice</w:t>
+      </w:r>
+      <w:r>
+        <w:t>, </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>redis-cart</w:t>
+      </w:r>
+      <w:r>
+        <w:t>. Each has pipelines/ci/&lt;service&gt;.yml, a chart under charts/, and values in gitops/envs/dev/values-&lt;service&gt;.yaml.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Upstream Google images (checkout, payment, email, etc.) can be enabled later for the full demo journey without this repo rebuilding them.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>When Something Fails</w:t>
+      </w:r>
+    </w:p>
+
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="auto"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tr>
+        <w:trPr><w:trHeight w:val="360" w:type="auto"/></w:trPr>
+        <w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Symptom</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/><w:shd w:fill="D9D9D9"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>First Look</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Pipeline cannot push to ACR</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>SP roles on dev ACR; service connection subscription</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>No GitOps PR</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>GITHUB_TOKEN in variable group; GITHUB_REPOSITORY in YAML</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Certificate pending</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>DNS zone IDs in cert-manager/external-dns; Workload Identity</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>503 on storefront</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>googleDemo.enabled, pod logs, Ingress backend</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Argo OutOfSync</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:t>Diff in values; manual sync on dev if needed</w:t></w:r></w:p></w:tc>
+      </w:tr>
+    </w:tbl>
+
+    <w:p>
+      <w:r>
+        <w:t>Full index: TROUBLESHOOTING.md and docs/runbooks/.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>What You Should Have Now</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>Terraform-managed Azure foundation and </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>dev</w:t>
+      </w:r>
+      <w:r>
+        <w:t> ACR with at least one image.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>Platform controllers and Argo CD reconciling from Git.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>A merged digest PR and a </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>HTTPS</w:t>
+      </w:r>
+      <w:r>
+        <w:t> dev storefront URL.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:pPr><w:pStyle w:val="ListBullet"/></w:pPr>
+      <w:r>
+        <w:t>Confidence that the next move is </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>promotion</w:t>
+      </w:r>
+      <w:r>
+        <w:t>, not rebuilding for stage.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Next</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Part 3: az acr import to stage and prod, manual prod Argo sync, alerts, rollback, and runbooks.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Repository:</w:t>
+      </w:r>
+      <w:r>
+        <w:t> </w:t>
+      </w:r>
+      <w:hyperlink w:anchor="https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring">
+        <w:r>
+          <w:rPr><w:u w:val="single"/><w:color w:val="0563C1"/></w:rPr>
+          <w:t>https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring</w:t>
+        </w:r>
+      </w:hyperlink>
+    </w:p>
+
+    <w:p>
+      <w:r>
+        <w:t>Corrections welcome in GitHub issues—I keep DEPLOYMENT.md and the phase guides aligned with what actually works in a fresh fork.</w:t>
+      </w:r>
+    </w:p>
+
+    <w:p><w:r><w:br/></w:r></w:p>
+
+    <w:p>
+      <w:r>
+        <w:rPr><w:i/></w:rPr>
+        <w:t>Part 3 Preview: promote-to-stage and promote-to-prod pipelines, environment approvals, CODEOWNERS on prod paths, manual Sync, and rehearsed GitOps rollback.</w:t>
+      </w:r>
+    </w:p>
+
+  </w:body>
+</w:document>
