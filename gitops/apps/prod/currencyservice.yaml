@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: currencyservice-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: boutique-prod
+  source:
+    repoURL: https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring.git
+    targetRevision: main
+    path: charts/currencyservice
+    helm:
+      releaseName: currencyservice
+      valueFiles:
+        - ../../gitops/envs/prod/values-currencyservice.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

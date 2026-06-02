@@ -1,0 +1,34 @@
+%% Export: docs/diagrams/02-azure-resources.png
+flowchart TB
+  subgraph bootstrap [Bootstrap - once]
+    ST[Remote state storage]
+  end
+
+  subgraph shared [Shared stack - rg-boutique-shared-weu]
+    VNet[VNet and subnets]
+    DNS[Azure DNS zone]
+    AKS[AKS aks-boutique-weu]
+    PIP[Static ingress public IP]
+    LA[Log Analytics]
+  end
+
+  subgraph dev [Dev stack - rg-boutique-dev-weu]
+    ACRD[ACR acrboutiquedevweu]
+    KVD[Key Vault kv-boutique-dev-weu]
+  end
+
+  subgraph stage [Stage stack - rg-boutique-stage-weu]
+    ACRS[ACR acrboutiquestageweu]
+    KVS[Key Vault kv-boutique-stage-weu]
+  end
+
+  subgraph prod [Prod stack - rg-boutique-prod-weu]
+    ACRP[ACR acrboutiqueprodweu]
+    KVP[Key Vault kv-boutique-prod-weu]
+  end
+
+  bootstrap --> shared
+  shared --> dev
+  shared --> stage
+  shared --> prod
+  AKS --- VNet

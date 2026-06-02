@@ -1,0 +1,26 @@
+# Helm values for cert-manager on AKS with Azure Workload Identity.
+# Replace placeholders before apply: serviceAccount.annotations.azure.workload.identity/client-id.
+# Usage:
+# helm upgrade --install cert-manager jetstack/cert-manager \
+#   -n cert-manager \
+#   --create-namespace \
+#   --set crds.enabled=true \
+#   -f gitops/apps/platform/cert-manager/values.yaml
+
+# Add workload identity label so cert-manager pods get projected tokens.
+podLabels:
+  azure.workload.identity/use: "true"
+
+serviceAccount:
+  create: true
+  name: cert-manager
+  annotations:
+    azure.workload.identity/client-id: "YOUR_CERT_MANAGER_MANAGED_IDENTITY_CLIENT_ID"
+  labels:
+    azure.workload.identity/use: "true"
+
+# Keep cert-manager on regular user pool nodes.
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

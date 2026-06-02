@@ -1,0 +1,45 @@
+replicaCount: 1
+
+image:
+  repository: changeme.azurecr.io/cartservice
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  port: 7070
+  targetPort: 7070
+
+resources: {}
+
+livenessProbe: {}
+
+readinessProbe: {}
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+priorityClassName: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false

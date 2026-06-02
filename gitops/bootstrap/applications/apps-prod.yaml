@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-prod
+  namespace: argocd
+  annotations:
+    # Apply before platform-prod so AppProject `boutique-prod` exists for platform sync.
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring.git
+    targetRevision: main
+    path: gitops/apps/prod
+    directory:
+      recurse: true
+      include: "*.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd

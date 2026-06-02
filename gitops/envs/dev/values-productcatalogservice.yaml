@@ -1,0 +1,12 @@
+image:
+  repository: acrboutiquedevweu.azurecr.io/productcatalogservice
+  digest: "sha256:24f808f6671bf7d6feb31f2e284c7eb6023f685ffcb9b178c5b50438cec39271"
+
+service:
+  port: 3550
+  targetPort: 3550
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

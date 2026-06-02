@@ -1,0 +1,6 @@
+shared_state_resource_group_name  = "rg-boutique-tfstate-weu"
+shared_state_storage_account_name = "stboutiquetfstateweu"
+
+# Optional: enterprise application Object ID for Azure DevOps promotion-azure-connection
+# (az devops service-endpoint show ... then az ad sp show --id <serviceprincipalid> --query id -o tsv)
+# promotion_service_principal_object_id = "00000000-0000-0000-0000-000000000000"

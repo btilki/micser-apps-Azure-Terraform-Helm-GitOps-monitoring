@@ -1,0 +1,11 @@
+# Optional: set priorityClassName in Helm values for critical prod workloads
+# (e.g. frontend, checkoutservice). Do not mark globalDefault: true.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: boutique-prod-critical
+value: 100000
+globalDefault: false
+description: >-
+  Higher scheduling priority for critical boutique prod services.
+  Reference as priorityClassName in gitops/envs/prod/values-*.yaml where supported.

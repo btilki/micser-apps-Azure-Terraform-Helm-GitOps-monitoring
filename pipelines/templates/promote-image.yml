@@ -1,0 +1,340 @@
+parameters:
+  - name: stageName
+    type: string
+  - name: stageDisplayName
+    type: string
+  - name: deploymentName
+    type: string
+  - name: deploymentDisplayName
+    type: string
+  - name: environmentName
+    type: string
+  - name: imageName
+    type: string
+  - name: sourceAcrLoginServer
+    type: string
+  - name: targetAcrName
+    type: string
+  - name: targetAcrLoginServer
+    type: string
+  - name: sourceValuesFile
+    type: string
+  - name: targetValuesFile
+    type: string
+  - name: githubRepository
+    type: string
+  - name: azureSubscriptionConnection
+    type: string
+  - name: promotionLabel
+    type: string
+  - name: requiredSourceAcrRoles
+    type: string
+    default: AcrPull
+  - name: requiredTargetAcrRoles
+    type: string
+    default: AcrPush
+  - name: requiredReaderResourceGroups
+    type: string
+    default: ''
+  - name: digest
+    type: string
+    default: ''
+  # Optional storefront URL for scripts/smoke.sh after GitOps file update (Phase 9).
+  # Leave empty to skip smoke. New image may not be live until PR merge + Argo sync.
+  - name: smokeBaseUrl
+    type: string
+    default: ''
+
+stages:
+  - stage: ${{ parameters.stageName }}
+    displayName: ${{ parameters.stageDisplayName }}
+    jobs:
+      - deployment: ${{ parameters.deploymentName }}
+        displayName: ${{ parameters.deploymentDisplayName }}
+        environment: ${{ parameters.environmentName }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  persistCredentials: true
+
+                - task: AzureCLI@2
+                  displayName: Validate service principal role assignments
+                  inputs:
+                    azureSubscription: ${{ parameters.azureSubscriptionConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+
+                      SOURCE_ACR_NAME="${{ split(parameters.sourceAcrLoginServer, '.')[0] }}"
+                      TARGET_ACR_NAME="${{ parameters.targetAcrName }}"
+                      REQUIRED_SOURCE_ROLES="${{ parameters.requiredSourceAcrRoles }}"
+                      REQUIRED_TARGET_ROLES="${{ parameters.requiredTargetAcrRoles }}"
+                      REQUIRED_READER_RGS="${{ parameters.requiredReaderResourceGroups }}"
+
+                      APP_ID="$(az account show --query user.name -o tsv)"
+                      SP_OBJECT_ID="$(az ad sp show --id "$APP_ID" --query id -o tsv)"
+
+                      if [ -z "$SP_OBJECT_ID" ]; then
+                        echo "Unable to resolve service principal object id."
+                        exit 1
+                      fi
+
+                      SOURCE_ACR_ID="$(az acr show --name "$SOURCE_ACR_NAME" --query id -o tsv)"
+                      TARGET_ACR_ID="$(az acr show --name "$TARGET_ACR_NAME" --query id -o tsv)"
+
+                      check_roles() {
+                        local scope="$1"
+                        local required_csv="$2"
+                        local scope_label="$3"
+                        IFS=',' read -r -a roles <<< "$required_csv"
+                        for role in "${roles[@]}"; do
+                          role="$(echo "$role" | xargs)"
+                          [ -z "$role" ] && continue
+                          ROLE_COUNT="$(az role assignment list --assignee-object-id "$SP_OBJECT_ID" --scope "$scope" --query "[?roleDefinitionName=='$role'] | length(@)" -o tsv)"
+                          if [ "${ROLE_COUNT:-0}" -lt 1 ]; then
+                            echo "Missing role '$role' on $scope_label ($scope)"
+                            exit 1
+                          fi
+                        done
+                      }
+
+                      check_roles "$SOURCE_ACR_ID" "$REQUIRED_SOURCE_ROLES" "source ACR"
+                      check_roles "$TARGET_ACR_ID" "$REQUIRED_TARGET_ROLES" "target ACR"
+
+                      if [ -n "$REQUIRED_READER_RGS" ]; then
+                        IFS=',' read -r -a rgs <<< "$REQUIRED_READER_RGS"
+                        for rg in "${rgs[@]}"; do
+                          rg="$(echo "$rg" | xargs)"
+                          [ -z "$rg" ] && continue
+                          RG_ID="$(az group show --name "$rg" --query id -o tsv)"
+                          check_roles "$RG_ID" "Reader" "resource group $rg"
+                        done
+                      fi
+
+                      echo "Service principal has all required roles."
+
+                - task: AzureCLI@2
+                  displayName: Resolve digest and import image
+                  name: ImportImage
+                  inputs:
+                    azureSubscription: ${{ parameters.azureSubscriptionConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+
+                      RAW_DIGEST='${{ parameters.digest }}'
+                      RAW_DIGEST="$(printf '%s' "$RAW_DIGEST" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -n1)"
+
+                      if [ -n "$RAW_DIGEST" ]; then
+                        DIGEST="$RAW_DIGEST"
+                      else
+                        DIGEST="$(awk -F': ' '/^[[:space:]]*digest:/{gsub(/"/,"",$2); gsub(/^[[:space:]]+|[[:space:]]+$/,"",$2); print $2; exit}' '${{ parameters.sourceValuesFile }}')"
+                        if [ -z "$DIGEST" ]; then
+                          echo "Unable to locate digest in source values file: ${{ parameters.sourceValuesFile }}"
+                          exit 1
+                        fi
+                      fi
+
+                      DIGEST="$(printf '%s' "$DIGEST" | tr -d '[:space:]')"
+
+                      if ! echo "$DIGEST" | grep -Eq '^sha256:[a-f0-9]{64}$'; then
+                        # Allow pasted text that *contains* a digest (e.g. logs); use first match only.
+                        EXTRACTED="$(printf '%s' "$DIGEST" | grep -oE 'sha256:[a-f0-9]{64}' | head -n1 || true)"
+                        if [ -n "$EXTRACTED" ]; then
+                          echo "WARN: digest parameter was not a bare sha256 value; using first embedded digest: $EXTRACTED"
+                          DIGEST="$EXTRACTED"
+                        fi
+                      fi
+
+                      if ! echo "$DIGEST" | grep -Eq '^sha256:[a-f0-9]{64}$'; then
+                        if echo "$DIGEST" | grep -Eiq 'replace|placeholder|changeme|your_digest|example|todo'; then
+                          echo "Digest in ${{ parameters.sourceValuesFile }} is still a placeholder: $DIGEST"
+                          echo "Fix: merge the real digest into that file on the branch this pipeline uses (usually main),"
+                          echo "or queue this run with the pipeline parameter 'digest' set to the full value from stage ACR (sha256:... 64 hex chars)."
+                          exit 1
+                        fi
+                        DIGEST_PREVIEW="$(printf '%s' "$DIGEST" | head -c 120)"
+                        echo "Digest format is invalid (showing first 120 chars): ${DIGEST_PREVIEW}..."
+                        echo "Expected exactly: sha256: plus 64 lowercase hex digits."
+                        echo "If you queued with parameter 'digest', paste only the digest (or leave it empty to read from GitOps)."
+                        exit 1
+                      fi
+
+                      echo "Promoting digest: $DIGEST"
+
+                      az acr import \
+                        --name "${{ parameters.targetAcrName }}" \
+                        --source "${{ parameters.sourceAcrLoginServer }}/${{ parameters.imageName }}@$DIGEST" \
+                        --repository "${{ parameters.imageName }}"
+
+                      # Job-scoped variable: reliable in deployment jobs. Task output
+                      # $(ImportImage.IMAGE_DIGEST) is not always expanded for later steps.
+                      echo "##vso[task.setvariable variable=IMPORTED_IMAGE_DIGEST]$DIGEST"
+                      echo "##vso[task.setvariable variable=IMAGE_DIGEST;isOutput=true]$DIGEST"
+
+                - script: |
+                    set -euo pipefail
+                    echo "Update GitOps values: using job variable IMPORTED_IMAGE_DIGEST (template digest propagation v2)."
+                    python3 - <<'PY'
+                    import re
+                    import sys
+                    from pathlib import Path
+
+                    path = Path("${{ parameters.targetValuesFile }}")
+                    content = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                    digest = "$(IMPORTED_IMAGE_DIGEST)".strip()
+                    repository = "${{ parameters.targetAcrLoginServer }}/${{ parameters.imageName }}"
+
+                    def fail(msg: str) -> None:
+                        # Single-line messages survive Azure DevOps log truncation better than multi-line.
+                        print(msg, file=sys.stderr)
+                        sys.exit(1)
+
+                    if not digest:
+                        fail(
+                            "Unable to update target values file | reason=IMPORTED_IMAGE_DIGEST_empty | "
+                            "fix=run pipeline from main after digest propagation fix; ensure 'Resolve digest and import image' succeeded."
+                        )
+
+                    # Match indented keys under `image:` (e.g. `  repository:`), not only column 0.
+                    updated = re.sub(
+                        r'^(\s*)repository:\s*"?([^"\n]+)"?',
+                        lambda m: f"{m.group(1)}repository: {repository}",
+                        content,
+                        count=1,
+                        flags=re.MULTILINE,
+                    )
+                    updated = re.sub(
+                        r'^(\s*)digest:\s*"?([^"\n]+)"?',
+                        lambda m: f'{m.group(1)}digest: "{digest}"',
+                        updated,
+                        count=1,
+                        flags=re.MULTILINE,
+                    )
+
+                    if updated == content:
+                        m_repo = re.search(
+                            r"^(\s*)repository:\s*\"?([^\"\n]+)\"?",
+                            content,
+                            flags=re.MULTILINE,
+                        )
+                        m_digest = re.search(
+                            r"^(\s*)digest:\s*\"?([^\"\n]+)\"?",
+                            content,
+                            flags=re.MULTILINE,
+                        )
+                        if m_repo and m_digest:
+                            cur_repo = m_repo.group(2).strip().strip('"')
+                            cur_digest = m_digest.group(2).strip().strip('"')
+                            if cur_repo == repository and cur_digest == digest:
+                                print(
+                                    f"No edit needed; {path} already has repository={repository} digest={digest}"
+                                )
+                            else:
+                                fail(
+                                    "Unable to update target values file | reason=pattern_noop_mismatch | "
+                                    f"path={path} | expected_repo={repository!r} expected_digest={digest!r} | "
+                                    f"found_repo={cur_repo!r} found_digest={cur_digest!r}"
+                                )
+                        else:
+                            fail(
+                                "Unable to update target values file | reason=no_repo_or_digest_key | "
+                                f"path={path} | need_indented_repository_and_digest_under_image_in_yaml"
+                            )
+                    else:
+                        path.write_text(updated)
+                        print(f"Updated {path} with repository={repository} digest={digest}")
+                    PY
+                  displayName: Update GitOps values
+
+                - script: |
+                    set -euo pipefail
+                    echo "##[section]Smoke test (target storefront)"
+                    echo "Note: Cluster may still serve the previous digest until the promotion PR merges and Argo CD syncs."
+                    bash scripts/smoke.sh --url "${{ parameters.smokeBaseUrl }}"
+                    echo "##[section]Smoke test finished"
+                  displayName: Smoke test storefront (HTTP 200)
+                  condition: and(succeeded(), ne('${{ parameters.smokeBaseUrl }}', ''))
+
+                - script: |
+                    set -euo pipefail
+
+                    USER_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "Authorization: Bearer $GITHUB_TOKEN" \
+                      https://api.github.com/user)"
+                    if [ "$USER_STATUS" != "200" ]; then
+                      echo "GitHub token check failed on /user (HTTP $USER_STATUS)."
+                      echo "Ensure GITHUB_TOKEN is valid and authorized for this org/repo."
+                      exit 1
+                    fi
+
+                    REPO_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "Authorization: Bearer $GITHUB_TOKEN" \
+                      https://api.github.com/repos/${{ parameters.githubRepository }})"
+                    if [ "$REPO_STATUS" != "200" ]; then
+                      echo "GitHub token cannot access repository ${{ parameters.githubRepository }} (HTTP $REPO_STATUS)."
+                      echo "Ensure token has repository and pull request permissions."
+                      exit 1
+                    fi
+
+                    echo "GitHub token pre-check passed."
+                  displayName: Validate GitHub token access
+                  env:
+                    GITHUB_TOKEN: $(GITHUB_TOKEN)
+
+                - script: |
+                    set -euo pipefail
+
+                    if git diff --quiet -- "${{ parameters.targetValuesFile }}"; then
+                      echo "No change detected in ${{ parameters.targetValuesFile }}."
+                      exit 0
+                    fi
+
+                    BRANCH="promote/${{ parameters.promotionLabel }}-${{ parameters.imageName }}-$(Build.BuildId)"
+                    TITLE="chore(promote): ${{ parameters.imageName }} to ${{ parameters.promotionLabel }} $(IMPORTED_IMAGE_DIGEST)"
+
+                    git checkout -b "$BRANCH"
+                    git add "${{ parameters.targetValuesFile }}"
+                    git -c user.name="azure-pipelines[bot]" -c user.email="azure-pipelines[bot]@users.noreply.github.com" \
+                      commit -m "$TITLE"
+                    git push origin "$BRANCH"
+
+                    PAYLOAD="$(cat <<EOF
+                    {
+                      "title": "$TITLE",
+                      "head": "$BRANCH",
+                      "base": "main",
+                      "body": "Automated ${{ parameters.promotionLabel }} promotion\\n\\n- Image: ${{ parameters.imageName }}\\n- Digest: $(IMPORTED_IMAGE_DIGEST)\\n- Source: ${{ parameters.sourceAcrLoginServer }}\\n- Target: ${{ parameters.targetAcrLoginServer }}"
+                    }
+                    EOF
+                    )"
+
+                    RESPONSE="$(curl -sS -X POST \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "Authorization: Bearer $GITHUB_TOKEN" \
+                      https://api.github.com/repos/${{ parameters.githubRepository }}/pulls \
+                      -d "$PAYLOAD")"
+
+                    PR_URL="$(RESPONSE_JSON="$RESPONSE" python3 - <<'PY'
+                    import json, os
+                    data = json.loads(os.environ["RESPONSE_JSON"])
+                    print(data.get("html_url", ""))
+                    PY
+                    )"
+
+                    if [ -z "$PR_URL" ]; then
+                      echo "Failed to create PR. API response:"
+                      echo "$RESPONSE"
+                      exit 1
+                    fi
+
+                    echo "Created PR: $PR_URL"
+                  displayName: Push branch and open promotion PR
+                  env:
+                    GITHUB_TOKEN: $(GITHUB_TOKEN)

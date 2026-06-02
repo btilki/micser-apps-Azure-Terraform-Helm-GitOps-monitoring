@@ -1,0 +1,41 @@
+# Root Azure Pipelines YAML (optional).
+#
+# Microservice CI and promotions are split across files under:
+#   - pipelines/ci/*.yml       — one ADO pipeline per file (path triggers per service)
+#   - pipelines/promote/*.yml  — manual promote flows
+#
+# In Azure DevOps: Pipelines → New pipeline → Existing Azure Pipelines YAML file,
+# then either register this file (manual layout check) or each file under ci/ and promote/.
+# Setup: pipelines/README.md
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+
+  - script: |
+      set -euo pipefail
+      missing=0
+      for f in \
+        pipelines/ci/frontend.yml \
+        pipelines/ci/cartservice.yml \
+        pipelines/ci/currencyservice.yml \
+        pipelines/ci/productcatalogservice.yml \
+        pipelines/ci/redis-cart.yml \
+        pipelines/promote/promote-to-stage.yml \
+        pipelines/promote/promote-to-prod.yml
+      do
+        if [ ! -f "$f" ]; then
+          echo "Missing: $f"
+          missing=1
+        fi
+      done
+      if [ "$missing" -ne 0 ]; then
+        echo "##vso[task.logissue type=error]One or more expected pipeline YAML files are missing."
+        exit 1
+      fi
+      echo "All expected pipeline YAML files are present."
+    displayName: Verify pipelines/ci and pipelines/promote YAML layout

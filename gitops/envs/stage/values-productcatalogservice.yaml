@@ -1,0 +1,26 @@
+image:
+  repository: acrboutiquestageweu.azurecr.io/productcatalogservice
+  digest: "sha256:1678d5f0b049b8c1f099e597ce635c2bae416fa3611cdd9faac8459ce2ba94a9"
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 400m
+    memory: 512Mi
+
+service:
+  port: 3550
+  targetPort: 3550
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations:
+  - key: env
+    operator: Equal
+    value: stage
+    effect: NoSchedule

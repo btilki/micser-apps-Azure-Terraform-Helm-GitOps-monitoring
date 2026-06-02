@@ -1,0 +1,46 @@
+replicaCount: 1
+
+image:
+  repository: changeme.azurecr.io/redis-cart
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  port: 6379
+  targetPort: 6379
+
+resources: {}
+
+livenessProbe: {}
+
+readinessProbe: {}
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+priorityClassName: ""
+
+# Official redis image runs as uid 999 / gid 1000 (redis group on alpine).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false

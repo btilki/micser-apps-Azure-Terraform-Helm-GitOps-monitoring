@@ -1,0 +1,46 @@
+# Helm values for external-dns on AKS + Workload Identity.
+# Replace placeholders before apply: domainFilters/example.com and
+# serviceAccount.annotations.azure.workload.identity/client-id.
+# 1) Create Secret external-dns-azure in namespace external-dns (see phase-02-cluster-bootstrap.md).
+# 2) Set serviceAccount.annotations to your external-dns user-assigned MI client ID.
+# 3) helm upgrade --install external-dns external-dns/external-dns -n external-dns -f values.yaml
+
+provider:
+  name: azure
+
+txtOwnerId: boutique
+
+domainFilters:
+  - example.com
+
+policy: upsert-only
+
+registry: txt
+
+sources:
+  - service
+  - ingress
+
+podLabels:
+  azure.workload.identity/use: "true"
+
+serviceAccount:
+  create: true
+  name: external-dns
+  annotations:
+    azure.workload.identity/client-id: "YOUR_EXTERNAL_DNS_MANAGED_IDENTITY_CLIENT_ID"
+  labels:
+    azure.workload.identity/use: "true"
+
+extraVolumes:
+  - name: azure-config-file
+    secret:
+      secretName: external-dns-azure
+
+extraVolumeMounts:
+  - name: azure-config-file
+    mountPath: /etc/kubernetes
+    readOnly: true
+
+# Schedule on the untainted user pool; remove if you use node affinity elsewhere.
+tolerations: []

@@ -1,0 +1,4 @@
+resource_group_name  = "rg-boutique-tfstate-weu"
+storage_account_name = "stboutiquetfstateweu"
+container_name       = "tfstate-shared"
+key                  = "boutique-shared.tfstate"

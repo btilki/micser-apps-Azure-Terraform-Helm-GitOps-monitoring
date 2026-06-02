@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: currencyservice-stage
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: boutique-stage
+  source:
+    repoURL: https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring.git
+    targetRevision: main
+    path: charts/currencyservice
+    helm:
+      releaseName: currencyservice
+      valueFiles:
+        - ../../gitops/envs/stage/values-currencyservice.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,35 @@
+%% Export: docs/diagrams/03-inside-cluster.png
+flowchart TB
+  subgraph platform [Platform namespaces]
+    ING[ingress-nginx]
+    CM[cert-manager]
+    ED[external-dns]
+    MON[monitoring - Prometheus Grafana]
+    AC[argocd]
+  end
+
+  subgraph dev [namespace dev]
+    FE[frontend]
+    CART[cartservice]
+    CURR[currencyservice]
+    CAT[productcatalogservice]
+    REDIS[redis-cart]
+  end
+
+  subgraph stage [namespace stage]
+    FE2[owned workloads]
+  end
+
+  subgraph prod [namespace prod]
+    FE3[owned workloads]
+  end
+
+  Internet((Internet)) --> ING
+  ING --> FE
+  FE --> CART
+  FE --> CURR
+  FE --> CAT
+  CART --> REDIS
+  AC --> dev
+  AC --> stage
+  AC --> prod

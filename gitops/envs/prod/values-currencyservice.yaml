@@ -1,0 +1,47 @@
+image:
+  repository: acrboutiqueprodweu.azurecr.io/currencyservice
+  digest: "sha256:bdbed665caa2b1afe72d01e2d5885587d543b2aaeb5587538d81921e7a777251"
+
+# Single replica until user node pool has spare capacity (see phase notes).
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 750m
+    memory: 640Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 15
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+service:
+  port: 7000
+  targetPort: 7000
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []
+
+priorityClassName: ""
