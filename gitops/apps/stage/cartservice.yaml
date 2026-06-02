@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cartservice-stage
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: boutique-stage
+  source:
+    repoURL: https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring.git
+    targetRevision: main
+    path: charts/cartservice
+    helm:
+      releaseName: cartservice
+      valueFiles:
+        - ../../gitops/envs/stage/values-cartservice.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

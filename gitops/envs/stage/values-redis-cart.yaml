@@ -1,0 +1,26 @@
+image:
+  repository: acrboutiquestageweu.azurecr.io/redis-cart
+  digest: "sha256:f337cad04ce49504acde20d4286a29e28d595b7fa61d16c0afac0a5190e4ebd1"
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 384Mi
+
+service:
+  port: 6379
+  targetPort: 6379
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations:
+  - key: env
+    operator: Equal
+    value: stage
+    effect: NoSchedule

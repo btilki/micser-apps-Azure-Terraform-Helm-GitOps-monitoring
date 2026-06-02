@@ -1,0 +1,12 @@
+image:
+  repository: acrboutiquedevweu.azurecr.io/cartservice
+  digest: "sha256:a1821618c4c3e4dcf8f9f1624f9b367ab00e71ea8b7fbe137168a5f18c033521"
+
+service:
+  port: 7070
+  targetPort: 7070
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

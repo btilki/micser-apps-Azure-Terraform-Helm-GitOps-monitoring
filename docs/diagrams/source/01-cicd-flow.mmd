@@ -1,0 +1,23 @@
+%% Export: docs/diagrams/01-cicd-flow.png
+flowchart TB
+  subgraph ci [CI - Azure DevOps]
+    A[Push or manual run] --> B[Build Dockerfile]
+    B --> C[Trivy scan]
+    C --> D[Push to ACR dev]
+    D --> E[Open GitHub PR]
+    E --> F[Update image.digest in gitops/envs/dev]
+  end
+
+  subgraph gitops [GitOps]
+    F --> G[Merge PR]
+    G --> H[Argo CD sync dev]
+    H --> I[Helm deploy to dev namespace]
+  end
+
+  subgraph promote [Promotion]
+    J[Manual promote pipeline] --> K[az acr import by digest]
+    K --> L[PR to gitops/envs/stage or prod]
+    L --> M[Merge and Argo sync]
+  end
+
+  I --> J

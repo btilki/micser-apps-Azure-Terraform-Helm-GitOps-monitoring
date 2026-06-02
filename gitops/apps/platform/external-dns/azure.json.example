@@ -1,0 +1,7 @@
+{
+  "tenantId": "<TENANT_ID>",
+  "subscriptionId": "<SUBSCRIPTION_ID>",
+  "resourceGroup": "<DNS_ZONE_RESOURCE_GROUP>",
+  "useWorkloadIdentityExtension": true,
+  "aadClientId": "<EXTERNAL_DNS_MI_CLIENT_ID>"
+}

@@ -1,0 +1,179 @@
+# kube-prometheus-stack — boutique monitoring + Alertmanager routing
+#
+# Install / upgrade (pick a chart version and pin it in your pipeline):
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace \
+#     -f gitops/apps/platform/kube-prometheus-stack/values.yaml
+#
+# Before production:
+# - Replace REPLACE_* placeholders or inject secrets via External Secrets / Sealed Secrets.
+# - Ensure NGINX Ingress Controller metrics are scraped (ServiceMonitor / PodMonitor).
+# - Enable cert-manager ServiceMonitor if you want CertificateExpiresSoon to fire.
+#
+# Verify:
+#   kubectl get pods -n monitoring
+#
+# Test notification (Alertmanager v2 API, replace pod name):
+#   kubectl -n monitoring port-forward svc/kube-prometheus-stack-alertmanager 9093:9093
+#   curl -H "Content-Type: application/json" -d '[{"labels":{"alertname":"BoutiqueManualTest","severity":"warning"}}]' http://127.0.0.1:9093/api/v2/alerts
+
+defaultRules:
+  create: true
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeProxy: false
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    nodeSelector:
+      kubernetes.azure.com/mode: user
+    tolerations: []
+  config:
+    global:
+      resolve_timeout: 5m
+    inhibit_rules:
+      - source_matchers:
+          - severity = critical
+        target_matchers:
+          - severity =~ warning|info
+        equal:
+          - namespace
+          - alertname
+      - source_matchers:
+          - severity = warning
+        target_matchers:
+          - severity = info
+        equal:
+          - namespace
+          - alertname
+      - source_matchers:
+          - alertname = InfoInhibitor
+        target_matchers:
+          - severity = info
+        equal:
+          - namespace
+      - target_matchers:
+          - alertname = InfoInhibitor
+    route:
+      group_by: ["namespace", "alertname"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: boutique-on-call
+      routes:
+        - receiver: "null"
+          matchers:
+            - alertname = Watchdog
+        - receiver: "null"
+          matchers:
+            - alertname = InfoInhibitor
+        # Explicit buckets (documentation); default receiver still boutique-on-call for all other alerts.
+        - receiver: boutique-on-call
+          matchers:
+            - alertname =~ "KubePodCrashLooping|KubePodNotReady|KubeJobFailed"
+        - receiver: boutique-on-call
+          matchers:
+            - alertname =~ "BoutiqueIngress5xxBurst|BoutiqueHighHttp5xxRatio"
+        - receiver: boutique-on-call
+          matchers:
+            - alertname =~ "BoutiqueCertificateExpiresSoon|CertManagerCertificateExpiresSoon|CertManagerCertificateNotReady"
+    receivers:
+      - name: "null"
+      - name: boutique-on-call
+        slack_configs:
+          - api_url: "REPLACE_SLACK_INCOMING_WEBHOOK_URL"
+            channel: "#boutique-alerts"
+            send_resolved: true
+            title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+            text: >-
+              {{ range .Alerts }}
+              *Summary:* {{ .Annotations.summary }}
+              *Severity:* {{ .Labels.severity }}
+              *Namespace:* {{ .Labels.namespace }}
+              {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
+              {{ end }}
+        email_configs:
+          - to: "oncall@REPLACE_YOUR_DOMAIN"
+            send_resolved: true
+            smarthost: "REPLACE_SMTP_HOST:587"
+            from: "alertmanager@REPLACE_YOUR_DOMAIN"
+            auth_username: "REPLACE_SMTP_USER"
+            auth_password: "REPLACE_SMTP_PASSWORD"
+        webhook_configs:
+          - url: "REPLACE_GENERIC_WEBHOOK_OR_MS_TEAMS_WORKFLOW_URL"
+            send_resolved: true
+    templates:
+      - "/etc/alertmanager/config/*.tmpl"
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 15d
+    nodeSelector:
+      kubernetes.azure.com/mode: user
+    tolerations: []
+
+grafana:
+  enabled: true
+  nodeSelector:
+    kubernetes.azure.com/mode: user
+  tolerations: []
+
+kube-state-metrics:
+  nodeSelector:
+    kubernetes.azure.com/mode: user
+
+prometheus-node-exporter:
+  tolerations:
+    - effect: NoSchedule
+      operator: Exists
+
+additionalPrometheusRulesMap:
+  boutique-custom-alerts:
+    groups:
+      - name: boutique-ingress-errors
+        rules:
+          - alert: BoutiqueIngress5xxBurst
+            expr: |
+              (
+                sum(rate(nginx_ingress_controller_requests{status=~"5.."}[5m]))
+                /
+                clamp_min(sum(rate(nginx_ingress_controller_requests[5m])), 1e-6)
+              ) > 0.05
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Ingress 5xx ratio above 5%"
+              description: "NGINX ingress 5xx share of traffic is high (burst). Check upstream pods and ingress logs."
+          - alert: BoutiqueHighHttp5xxRatio
+            expr: |
+              (
+                sum(rate(nginx_ingress_controller_requests{status=~"5.."}[10m]))
+                /
+                clamp_min(sum(rate(nginx_ingress_controller_requests[10m])), 1e-6)
+              ) > 0.01
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Sustained high ingress 5xx rate"
+              description: "Elevated HTTP 5xx rate through the ingress controller for 10m."
+      - name: boutique-certificates
+        rules:
+          - alert: BoutiqueCertificateExpiresSoon
+            expr: |
+              min by (namespace, name) (
+                certmanager_certificate_expiration_timestamp_seconds - time()
+              ) < 14 * 24 * 3600
+            for: 1h
+            labels:
+              severity: warning
+            annotations:
+              summary: "Certificate expires within 14 days"
+              description: "Renew or fix cert-manager Certificate before expiry (requires cert-manager metrics scrape)."

@@ -1,0 +1,30 @@
+image:
+  repository: acrboutiquestageweu.azurecr.io/frontend
+  digest: "sha256:6da469acc3103ad48e446d0e56fe9f1c064612638c5be599e40c129951e91c2c"
+
+googleDemo:
+  enabled: false
+  externalName: frontend.google-boutique.svc.cluster.local
+
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 150m
+    memory: 192Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+ingress:
+  className: nginx
+  host: stage.boutique.example.com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    secretName: frontend-stage-tls
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []

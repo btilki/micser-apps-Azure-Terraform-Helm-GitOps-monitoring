@@ -1,0 +1,66 @@
+
+# Terraform local/cache files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local backend/config overrides
+**/backend.hcl
+**/terraform.tfvars
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Secrets
+*.pem
+.env
+.env.*
+
+# Terraform local backend config (keep *.example tracked)
+**/backend.hcl
+
+# Build / languages (under apps/ when populated)
+dist/
+build/
+target/
+bin/
+obj/
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.go/
+*.exe
+*.dll
+*.tgz
+
+# Argo CD local bootstrap copy (optional)
+gitops/bootstrap/root-app.yaml
+
+# User-requested ignores
+.azure-tmp/
+.azure/

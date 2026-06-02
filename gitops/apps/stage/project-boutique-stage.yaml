@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-stage
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: Stage environment project for boutique services
+  sourceRepos:
+    - https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: stage
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

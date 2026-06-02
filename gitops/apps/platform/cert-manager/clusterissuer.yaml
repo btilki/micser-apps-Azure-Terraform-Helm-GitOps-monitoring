@@ -1,0 +1,24 @@
+# Replace placeholders before apply: tenant/subscription IDs are not secrets, but real values tie a clone
+# to one Azure tenant and confuse dry runs. Typical sources: `az account show` and Terraform outputs from
+# infra/terraform/envs/shared (DNS zone + RG). managedIdentity.clientID: user-assigned MI for cert-manager
+# (DNS Zone Contributor on the zone, federated to subject system:serviceaccount:cert-manager:cert-manager,
+# SA annotated with azure.workload.identity/client-id).
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: you@example.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - dns01:
+          azureDNS:
+            hostedZoneName: example.com
+            resourceGroupName: YOUR_DNS_RESOURCE_GROUP
+            subscriptionID: YOUR_SUBSCRIPTION_ID
+            environment: AzurePublicCloud
+            managedIdentity:
+              clientID: YOUR_CERT_MANAGER_MANAGED_IDENTITY_CLIENT_ID

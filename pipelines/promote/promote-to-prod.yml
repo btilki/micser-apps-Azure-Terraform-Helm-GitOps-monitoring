@@ -1,0 +1,49 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: 'variable-group-for-microservices'
+
+parameters:
+  - name: service
+    displayName: "Owned service (ACR repository = values-<service>.yaml suffix)"
+    type: string
+    default: frontend
+    values:
+      - frontend
+      - cartservice
+      - currencyservice
+      - productcatalogservice
+      - redis-cart
+  # Non-empty default avoids Azure DevOps marking the field "Required" in Run pipeline
+  # (empty default: '' is a known UI quirk). Whitespace is trimmed in promote-image.yml.
+  - name: digest
+    displayName: "Digest to promote (leave default to read from source GitOps; or sha256:...)"
+    type: string
+    default: ' '
+
+extends:
+  template: ../templates/promote-image.yml
+  parameters:
+    stageName: PromoteToProd
+    stageDisplayName: "Promote ${{ parameters.service }} (stage → prod)"
+    deploymentName: PromoteProd
+    deploymentDisplayName: "Import ${{ parameters.service }} + prod GitOps PR"
+    environmentName: promote-prod
+    imageName: ${{ parameters.service }}
+    sourceAcrLoginServer: acrboutiquestageweu.azurecr.io
+    targetAcrName: acrboutiqueprodweu
+    targetAcrLoginServer: acrboutiqueprodweu.azurecr.io
+    sourceValuesFile: gitops/envs/stage/values-${{ parameters.service }}.yaml
+    targetValuesFile: gitops/envs/prod/values-${{ parameters.service }}.yaml
+    githubRepository: btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring
+    azureSubscriptionConnection: promotion-azure-connection
+    promotionLabel: prod
+    requiredSourceAcrRoles: AcrPull
+    requiredTargetAcrRoles: AcrPush
+    requiredReaderResourceGroups: rg-boutique-stage-weu,rg-boutique-prod-weu
+    digest: ${{ parameters.digest }}
+    smokeBaseUrl: 'https://boutique.example.com'

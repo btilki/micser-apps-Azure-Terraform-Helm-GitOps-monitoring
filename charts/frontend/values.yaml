@@ -1,0 +1,71 @@
+replicaCount: 2
+
+image:
+  repository: changeme.azurecr.io/frontend
+  digest: "sha256:replace-me"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+# Workload Identity + Key Vault CSI (v1). Requires Terraform UAMI, SecretProviderClass, and a vault secret.
+workloadIdentity:
+  enabled: false
+  clientId: ""
+
+keyVault:
+  enabled: false
+  secretProviderClass: boutique-dev-frontend-kv
+  mountPath: /mnt/secrets-store
+
+service:
+  port: 80
+  targetPort: 8080
+
+googleDemo:
+  enabled: false
+  externalName: frontend.google-boutique.svc.cluster.local
+
+ingress:
+  enabled: true
+  className: nginx
+  host: dev.boutique.example.com
+  tls:
+    enabled: true
+    secretName: frontend-dev-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+resources: {}
+
+livenessProbe: {}
+
+readinessProbe: {}
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+# Optional: must match a cluster PriorityClass (e.g. boutique-prod-critical in prod).
+priorityClassName: ""
+
+# Phase 8 / Pod Security restricted-friendly defaults (nginx:alpine runs as uid 101).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false

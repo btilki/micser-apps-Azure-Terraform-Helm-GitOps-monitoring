@@ -1,0 +1,7 @@
+{
+  "tenantId": "YOUR_TENANT_ID",
+  "subscriptionId": "YOUR_SUBSCRIPTION_ID",
+  "resourceGroup": "YOUR_DNS_RESOURCE_GROUP",
+  "useWorkloadIdentityExtension": true,
+  "aadClientId": "YOUR_EXTERNAL_DNS_MANAGED_IDENTITY_CLIENT_ID"
+}

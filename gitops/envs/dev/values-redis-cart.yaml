@@ -1,0 +1,12 @@
+image:
+  repository: acrboutiquedevweu.azurecr.io/redis-cart
+  digest: "sha256:0aa25a64109156776af06fef7155875855a45ddf7ecac3a91f8f40431cc09f91"
+
+service:
+  port: 6379
+  targetPort: 6379
+
+nodeSelector:
+  kubernetes.azure.com/mode: user
+
+tolerations: []
