@@ -18,6 +18,8 @@ Mono-repo for Google’s [microservices-demo-apps](https://github.com/GoogleClou
 
 Component references: [pipelines/](pipelines/README.md) · [gitops/](gitops/README.md) · [charts/](charts/README.md) · [apps/](apps/README.md) · [runbooks/](docs/runbooks/README.md)
 
+**Sibling repos:** [micser-apps-AWS-Terraform-Helm-GitOps-monitoring](https://github.com/btilki/micser-apps-AWS-Terraform-Helm-GitOps-monitoring) · [micser-apps-GCP-Terraform-Helm-GitOps-monitoring](https://github.com/btilki/micser-apps-GCP-Terraform-Helm-GitOps-monitoring)
+
 ## Prerequisites
 
 | Tool | Purpose |
