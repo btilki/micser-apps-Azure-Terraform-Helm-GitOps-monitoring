@@ -5,10 +5,8 @@
 **Repository:** https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring
 
 **Images for Medium (from repo `docs/diagrams/`):**  
-1. `infrastructure-diagram.png` — after "The big picture" and in Azure/cluster sections  
-2. `architecture-cicd-sequence.png` — after three ACRs section  
-
-Regenerate from Mermaid: [docs/diagrams/render-architecture-pngs.sh](../diagrams/render-architecture-pngs.sh).
+1. `infrastructure-diagram.png` — after "The big picture" and in Azure/cluster sections
+2. `architecture-cicd-sequence.png` — after three ACRs section
 
 ---
 

@@ -4,20 +4,10 @@ Assets for architecture docs, Medium articles, and phase guides.
 
 ## Architecture PNGs — in repo
 
-| File | Source | Subject |
-|------|--------|---------|
-| `infrastructure-diagram.png` | [source/infrastructure-diagram.mmd](source/infrastructure-diagram.mmd) | Full platform: Terraform, Azure, AKS, workloads, GitOps |
-| `architecture-cicd-sequence.png` | [source/architecture-cicd-sequence.mmd](source/architecture-cicd-sequence.mmd) | CI/CD sequence (build, promote, deploy) |
-
-Shared render config: [source/mermaid-config.json](source/mermaid-config.json) (font size, spacing).
-
-**Regenerate** after editing `.mmd` files:
-
-```bash
-./docs/diagrams/render-architecture-pngs.sh
-```
-
-Requires Node.js (`npx` downloads `@mermaid-js/mermaid-cli` once). The infrastructure diagram renders at high resolution (5200×3600 canvas, 2× scale).
+| File | Subject |
+|------|---------|
+| `infrastructure-diagram.png` | Full platform: Terraform, Azure, AKS, workloads, GitOps |
+| `architecture-cicd-sequence.png` | CI/CD sequence (build, promote, deploy) |
 
 Referenced from [ARCHITECTURE.md](../../ARCHITECTURE.md), [architecture-diagram.md](../architecture-diagram.md), and `docs/medium/post-*.md`.
 

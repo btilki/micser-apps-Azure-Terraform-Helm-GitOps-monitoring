@@ -6,7 +6,7 @@
 
 > **Live diagram:** Canonical architecture PNGs are [infrastructure-diagram.png](diagrams/infrastructure-diagram.png) and [architecture-cicd-sequence.png](diagrams/architecture-cicd-sequence.png). A shorter inline Mermaid summary also renders in [architecture-design.md §5](./architecture-design.md#5-high-level-architecture) on GitHub.
 >
-> **PNG filenames** (`infrastructure-diagram.png`, `architecture-cicd-sequence.png`) are used by Medium drafts and [ARCHITECTURE.md](../ARCHITECTURE.md). Regenerate with [diagrams/render-architecture-pngs.sh](./diagrams/render-architecture-pngs.sh).
+> **PNG diagrams:** [infrastructure-diagram.png](diagrams/infrastructure-diagram.png) and [architecture-cicd-sequence.png](diagrams/architecture-cicd-sequence.png) — used by Medium drafts and [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 This doc is a **tool reference** and relationship table for the stack. Use it with the Mermaid diagram in `architecture-design.md` and PNGs under `docs/diagrams/`.
 
@@ -18,8 +18,6 @@ Terraform foundation, Azure resources, AKS namespaces, workloads, platform stack
 
 ![Infrastructure diagram](diagrams/infrastructure-diagram.png)
 
-*Source:* [diagrams/source/infrastructure-diagram.mmd](diagrams/source/infrastructure-diagram.mmd)
-
 ---
 
 ## Diagram 2 — CI/CD sequence (`architecture-cicd-sequence.png`)
@@ -27,8 +25,6 @@ Terraform foundation, Azure resources, AKS namespaces, workloads, platform stack
 How a code change travels from the developer's keyboard to a running pod.
 
 ![CI/CD sequence](diagrams/architecture-cicd-sequence.png)
-
-*Source:* [diagrams/source/architecture-cicd-sequence.mmd](diagrams/source/architecture-cicd-sequence.mmd)
 
 ---
 

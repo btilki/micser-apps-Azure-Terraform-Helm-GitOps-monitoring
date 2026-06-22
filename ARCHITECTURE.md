@@ -23,15 +23,11 @@ End-to-end platform: Terraform, Azure resources, AKS namespaces, workloads, CI/C
 
 ![Infrastructure diagram](docs/diagrams/infrastructure-diagram.png)
 
-*Source:* [docs/diagrams/source/infrastructure-diagram.mmd](docs/diagrams/source/infrastructure-diagram.mmd) — re-export with [docs/diagrams/render-architecture-pngs.sh](docs/diagrams/render-architecture-pngs.sh).
-
 ### CI/CD sequence
 
 Build in dev, promote by digest, GitOps PRs, Argo CD deploy.
 
 ![CI/CD sequence](docs/diagrams/architecture-cicd-sequence.png)
-
-*Source:* [docs/diagrams/source/architecture-cicd-sequence.mmd](docs/diagrams/source/architecture-cicd-sequence.mmd) — re-export with [docs/diagrams/render-architecture-pngs.sh](docs/diagrams/render-architecture-pngs.sh).
 
 | More | Link |
 |------|------|
