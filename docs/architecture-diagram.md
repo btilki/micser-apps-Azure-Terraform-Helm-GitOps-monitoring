@@ -4,35 +4,31 @@
 **Created:** 2026-05-03
 **Companion docs:** `architecture-design.md`, `cicd-pipeline-plan.md`
 
-> **Live diagram:** The canonical **Mermaid** platform flow is in [architecture-design.md §5](./architecture-design.md#5-high-level-architecture) (renders on GitHub).
+> **Live diagram:** Canonical architecture PNGs are [infrastructure-diagram.png](diagrams/infrastructure-diagram.png) and [architecture-cicd-sequence.png](diagrams/architecture-cicd-sequence.png). A shorter inline Mermaid summary also renders in [architecture-design.md §5](./architecture-design.md#5-high-level-architecture) on GitHub.
 >
-> **PNG filenames** (`00-platform-overview.png`, `01-cicd-flow.png`, …) are used by Medium drafts and [ARCHITECTURE.md](../ARCHITECTURE.md). They are **optional exports** — see [diagrams/README.md](./diagrams/README.md) for what is in-repo vs capture-your-own.
+> **PNG filenames** (`infrastructure-diagram.png`, `architecture-cicd-sequence.png`) are used by Medium drafts and [ARCHITECTURE.md](../ARCHITECTURE.md). Regenerate with [diagrams/render-architecture-pngs.sh](./diagrams/render-architecture-pngs.sh).
 
-This doc is a **tool reference** and relationship table for the stack. Use it with the Mermaid diagram in `architecture-design.md` and optional PNGs under `docs/diagrams/`.
+This doc is a **tool reference** and relationship table for the stack. Use it with the Mermaid diagram in `architecture-design.md` and PNGs under `docs/diagrams/`.
 
 ---
 
-## Diagram 1 — High-level CI/CD flow
+## Diagram 1 — Infrastructure (`infrastructure-diagram.png`)
+
+Terraform foundation, Azure resources, AKS namespaces, workloads, platform stack, and GitOps control plane.
+
+![Infrastructure diagram](diagrams/infrastructure-diagram.png)
+
+*Source:* [diagrams/source/infrastructure-diagram.mmd](diagrams/source/infrastructure-diagram.mmd)
+
+---
+
+## Diagram 2 — CI/CD sequence (`architecture-cicd-sequence.png`)
 
 How a code change travels from the developer's keyboard to a running pod.
 
-![CI/CD flow](diagrams/01-cicd-flow.png)
+![CI/CD sequence](diagrams/architecture-cicd-sequence.png)
 
----
-
-## Diagram 2 — Azure resource layout
-
-What Terraform creates in the subscription and how the resource groups are scoped.
-
-![Azure resource layout](diagrams/02-azure-resources.png)
-
----
-
-## Diagram 3 — Inside the AKS cluster
-
-What's running inside the cluster, who controls what, and how traffic flows.
-
-![Inside the AKS cluster](diagrams/03-inside-cluster.png)
+*Source:* [diagrams/source/architecture-cicd-sequence.mmd](diagrams/source/architecture-cicd-sequence.mmd)
 
 ---
 
@@ -87,7 +83,7 @@ Tools grouped by role in the stack. Each entry: **what it is** · **why we use i
 - **User-Assigned Managed Identity (UAMI)** — Azure identities for workloads. We use one per env (`id-boutique-dev/stage/prod`) plus dedicated UAMIs for cert-manager, external-dns, and the AKS kubelet.
 - **Workload Identity (federated credentials)** — Bridge between K8s ServiceAccounts and UAMIs via OIDC. Lets pods authenticate to Azure resources (Key Vault, DNS) without secrets.
 - **Azure Key Vault × 3** — Env-scoped secret storage. RBAC mode, private endpoint, soft-delete on, purge protection on prod.
-- **CSI Secrets Store driver + Azure provider** — Planned for app workloads (vaults provisioned by Terraform; GitOps mounts not in v1). Would mount Key Vault secrets as files; optional sync to native K8s `Secret`.
+- **CSI Secrets Store driver + Azure provider** — Enabled on AKS. **v1:** dev `frontend` uses Workload Identity + `SecretProviderClass` ([key-vault-csi-v1.md](secrets/key-vault-csi-v1.md)); other workloads can follow the same pattern.
 
 ### Observability
 
@@ -121,7 +117,7 @@ Tools grouped by role in the stack. Each entry: **what it is** · **why we use i
 | ArgoCD | AKS | apply manifests; reconcile state |
 | ArgoCD | Helm | render chart templates with per-env values |
 | Kubelet (AKS) | ACR (per env) | image pull via UAMI's `AcrPull` role |
-| Pod (workload) | Key Vault (per env) | *Planned:* CSI Secrets Store driver via Workload Identity |
+| Pod (workload) | Key Vault (per env) | CSI Secrets Store via Workload Identity (v1: dev frontend) |
 | End user | Public IP | HTTPS request |
 | Public IP | NGINX Ingress | LoadBalancer Service |
 | NGINX Ingress | Pod (frontend) | L7 routing by hostname |
@@ -144,8 +140,7 @@ Tools grouped by role in the stack. Each entry: **what it is** · **why we use i
 
 ## Reading order
 
-1. **Diagram 1** to see the *path of a change* — code → image → cluster.
-2. **Diagram 2** to understand *what's in Azure* and how it's grouped by resource group.
-3. **Diagram 3** to see *what's running inside the cluster* and how traffic, secrets, and metrics flow.
-4. **Tool reference** for any tool you need to look up by name.
-5. **Relationships table** to answer "who talks to whom and over what."
+1. **Diagram 1 (infrastructure)** — Terraform, Azure, AKS namespaces, workloads, and GitOps in one view.
+2. **Diagram 2 (CI/CD sequence)** — the *path of a change*: code → image → cluster.
+3. **Tool reference** for any tool you need to look up by name.
+4. **Relationships table** to answer "who talks to whom and over what."

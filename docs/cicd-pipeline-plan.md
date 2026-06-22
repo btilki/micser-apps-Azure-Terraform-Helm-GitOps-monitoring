@@ -95,11 +95,11 @@ Two options:
 
 Recommendation: **one chart per service** (cleaner ownership) plus an umbrella App-of-Apps in the GitOps repo.
 
-Each chart should include: Deployment, Service, HPA, PDB, NetworkPolicy, ServiceAccount, and (for the frontend) an Ingress with TLS. Values files per environment override replicas, resources, image tag, and hostnames.
+Each chart should include: Deployment, Service, HPA, PDB, NetworkPolicy, ServiceAccount, and (for the frontend) an Ingress with TLS. Values files per environment override replicas, resources, image digest, and hostnames.
 
 ### Scope (v1)
 
-The repo owns charts + CI for **6 services**: `frontend`, `cartservice`, `productcatalogservice`, `currencyservice`, `redis-cart`, and a custom `backend`. The remaining 5 Online Boutique services (`paymentservice`, `shippingservice`, `emailservice`, `checkoutservice`, `recommendationservice`, `adservice`) and `loadgenerator` are deployed using Google's upstream container images via overlay-only Helm values — no in-tree Dockerfile or CI pipeline. Adopting them in-tree later means duplicating the pattern of an in-tree service: `apps/<svc>/Dockerfile` + `charts/<svc>/` + `pipelines/ci/<svc>.yml` + `gitops/apps/<env>/<svc>.yaml`.
+The repo owns charts + CI for **5 services**: `frontend`, `cartservice`, `productcatalogservice`, `currencyservice`, and `redis-cart`. Additional Online Boutique services (`checkoutservice`, `paymentservice`, `shippingservice`, `emailservice`, `recommendationservice`, `adservice`) and `loadgenerator` can use Google's upstream container images via overlay-only Helm values — no in-tree Dockerfile or CI pipeline. Adopting them in-tree later means duplicating the pattern of an in-tree service: `apps/<svc>/Dockerfile` + `charts/<svc>/` + `pipelines/ci/<svc>.yml` + `gitops/apps/<env>/<svc>.yaml`.
 
 ---
 
@@ -111,7 +111,7 @@ For each microservice, the CI pipeline does:
 2. Build container image, tag with `${git-sha}` and `${branch}`
 3. Scan with Trivy (or Defender for Containers)
 4. Push to ACR
-5. **Update the GitOps repo** — bump the image tag in `envs/dev/values.yaml` via a PR or direct commit (this is what triggers deployment)
+5. **Update the GitOps repo** — bump the image **digest** in `gitops/envs/dev/values-*.yaml` via a PR (this is what triggers deployment)
 
 Use a multi-stage YAML pipeline, templates for shared steps, and service connections with workload identity federation (no PATs).
 

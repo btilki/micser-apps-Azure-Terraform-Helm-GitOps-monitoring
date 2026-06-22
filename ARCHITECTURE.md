@@ -17,31 +17,21 @@ Non-goals: [ROADMAP.md — Non-goals](ROADMAP.md#non-goals).
 
 ## Architecture diagrams
 
-### Platform overview
+### Infrastructure diagram
 
-End-to-end platform: Developer, GitHub, Azure DevOps, ACRs, Argo CD, and AKS.
+End-to-end platform: Terraform, Azure resources, AKS namespaces, workloads, CI/CD, and GitOps.
 
-![Platform overview](docs/diagrams/00-platform-overview.png)
+![Infrastructure diagram](docs/diagrams/infrastructure-diagram.png)
 
-*Source:* [docs/diagrams/source/00-platform-overview.mmd](docs/diagrams/source/00-platform-overview.mmd) — re-export with [render-architecture-pngs.sh](docs/diagrams/render-architecture-pngs.sh).
+*Source:* [docs/diagrams/source/infrastructure-diagram.mmd](docs/diagrams/source/infrastructure-diagram.mmd) — re-export with [docs/diagrams/render-architecture-pngs.sh](docs/diagrams/render-architecture-pngs.sh).
 
-### CI/CD flow
+### CI/CD sequence
 
 Build in dev, promote by digest, GitOps PRs, Argo CD deploy.
 
-![CI/CD flow](docs/diagrams/01-cicd-flow.png)
+![CI/CD sequence](docs/diagrams/architecture-cicd-sequence.png)
 
-### Azure resources
-
-Terraform-managed resources and environment separation.
-
-![Azure resources](docs/diagrams/02-azure-resources.png)
-
-### Inside cluster
-
-Namespaces, platform components, and workload layout on AKS.
-
-![Inside cluster](docs/diagrams/03-inside-cluster.png)
+*Source:* [docs/diagrams/source/architecture-cicd-sequence.mmd](docs/diagrams/source/architecture-cicd-sequence.mmd) — re-export with [docs/diagrams/render-architecture-pngs.sh](docs/diagrams/render-architecture-pngs.sh).
 
 | More | Link |
 |------|------|

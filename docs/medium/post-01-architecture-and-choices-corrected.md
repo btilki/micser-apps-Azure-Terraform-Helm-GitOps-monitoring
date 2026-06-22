@@ -5,10 +5,8 @@
 **Repository:** https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring
 
 **Images for Medium (from repo `docs/diagrams/`):**  
-1. `00-platform-overview.png` — after "The big picture"  
-2. `02-azure-resources.png` — in Azure foundation section  
-3. `01-cicd-flow.png` — after three ACRs section  
-4. `03-inside-cluster.png` — in cluster layout section  
+1. `infrastructure-diagram.png` — after "The big picture" and in Azure/cluster sections  
+2. `architecture-cicd-sequence.png` — after three ACRs section  
 
 Regenerate from Mermaid: [docs/diagrams/render-architecture-pngs.sh](../diagrams/render-architecture-pngs.sh).
 
@@ -56,7 +54,7 @@ A developer pushes application or GitOps changes to GitHub. Azure DevOps builds 
 
 To move toward stage or prod, a **promotion** pipeline runs `az acr import` to copy that digest into the target environment's registry, updates the right values file, and opens another PR. After merge, Argo CD applies Helm charts to the cluster. For production, sync is **manual**: merging Git is necessary but not sufficient to roll out.
 
-[INSERT IMAGE: 00-platform-overview.png — Caption: End-to-end flow from developer to AKS via GitHub, Azure DevOps, ACRs, and Argo CD.]
+[INSERT IMAGE: infrastructure-diagram.png — Caption: End-to-end flow from developer to AKS via GitHub, Azure DevOps, ACRs, and Argo CD.]
 
 That separation—**CI produces artifacts**, **promotion moves artifacts**, **GitOps declares desired state**, **Argo CD reconciles**—is the spine of the design. If you remember one thing from this post, remember that spine.
 
@@ -77,7 +75,7 @@ Terraform is split into layers on purpose:
 
 **Per environment** (`dev`, `stage`, `prod`) provisions its own resource group, **its own ACR**, Key Vault, and supporting pieces—so blast radius and permissions can follow environment boundaries even though the kube-apiserver is shared.
 
-[INSERT IMAGE: 02-azure-resources.png — Caption: Terraform layers—bootstrap state, shared platform, per-environment registries and vaults.]
+[INSERT IMAGE: infrastructure-diagram.png — Caption: Terraform layers, Azure resources, AKS namespaces, platform stack, and workloads on one cluster.]
 
 ### Why three container registries?
 
@@ -97,15 +95,13 @@ image:
   digest: "sha256:..."
 ```
 
-[INSERT IMAGE: 01-cicd-flow.png — Caption: CI builds to dev ACR; promotion imports digest to stage/prod; GitOps PRs record the change.]
+[INSERT IMAGE: architecture-cicd-sequence.png — Caption: CI builds to dev ACR; promotion imports digest to stage/prod; GitOps PRs record the change.]
 
 ---
 
 ## Inside the cluster
 
-There is one AKS cluster. Workloads for the boutique app run in namespaces **dev**, **stage**, and **prod**. Platform components live in their own namespaces: `ingress-nginx`, `cert-manager`, `external-dns`, `monitoring`, and `argocd`.
-
-[INSERT IMAGE: 03-inside-cluster.png — Caption: Platform namespaces and app namespaces on a single cluster.]
+There is one AKS cluster. Workloads for the boutique app run in namespaces **dev**, **stage**, and **prod**. Platform components live in their own namespaces: `ingress-nginx`, `cert-manager`, `external-dns`, `monitoring`, and `argocd`. See `infrastructure-diagram.png` for the full layout.
 
 Isolation is layered—not perfect multi-tenant separation, but deliberate:
 

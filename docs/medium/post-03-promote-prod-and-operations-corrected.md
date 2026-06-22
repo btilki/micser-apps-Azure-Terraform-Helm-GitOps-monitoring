@@ -9,7 +9,7 @@
 
 **Images to upload to Medium:**  
 1. `docs/diagrams/azure-devops-pipelines-environments-promote-stage-prod.png` — in repo; after "Promote to stage"  
-2. `01-cicd-flow.png` / `00-platform-overview.png` — optional exports; see [docs/diagrams/README.md](../diagrams/README.md)  
+2. `architecture-cicd-sequence.png` / `infrastructure-diagram.png` — in repo; see [docs/diagrams/README.md](../diagrams/README.md)  
 
 ---
 
@@ -37,7 +37,7 @@ Three steps, three tools:
 
 The digest string in Git is the contract. Promotion copies **manifests**, not tags you might retag later.
 
-**[Insert image: 01-cicd-flow.png — caption: Import by digest across ACRs; GitOps PRs are the audit trail.]**
+**[Insert image: architecture-cicd-sequence.png — caption: Import by digest across ACRs; GitOps PRs are the audit trail.]**
 
 ---
 
@@ -162,7 +162,7 @@ Phases 8–9 in the repo cover policy bundles, Trivy in CI, budgets, dashboard p
 
 ## Full loop (what you built)
 
-**[Optional: insert 00-platform-overview.png — caption: Developer → GitHub → Azure DevOps → ACRs → Argo CD → AKS.]**
+**[Optional: insert infrastructure-diagram.png — caption: Developer → GitHub → Azure DevOps → ACRs → Argo CD → AKS.]**
 
 From a whiteboard perspective you now have:
 

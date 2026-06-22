@@ -87,7 +87,7 @@ For **owned** services: ensure real digests in GitOps (via CI or manual), run pi
 
 ### Boutique Apps Frontend (Dev, Stage, Prod) are healthy and synced on Argo CD:
 
-![alt text](./../diagrams/argocd-dev-apps-frontend-healthy.png)
+![Argo CD — dev apps frontend healthy](./../diagrams/argocd-dev-apps-frontend-healthy.png)
 
 ## Done checklist
 

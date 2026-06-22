@@ -7,7 +7,7 @@ Mono-repo for Google’s [microservices-demo-apps](https://github.com/GoogleClou
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Azure/AKS topology, CI/CD, GitOps, diagram index |
-| [docs/diagrams/README.md](docs/diagrams/README.md) | Architecture PNGs and phase screenshots (in-repo vs optional) |
+| [docs/diagrams/README.md](docs/diagrams/README.md) | Architecture PNGs and phase screenshots |
 | [docs/medium/README.md](docs/medium/README.md) | Medium article series (3 parts) |
 | [docs/secrets/key-vault-csi-v1.md](docs/secrets/key-vault-csi-v1.md) | Key Vault + CSI for frontend (v1) |
 | [docs/adr/ADR-002-platform-bootstrap-helm-vs-argo.md](docs/adr/ADR-002-platform-bootstrap-helm-vs-argo.md) | Helm-first platform vs Argo (trade-off) |

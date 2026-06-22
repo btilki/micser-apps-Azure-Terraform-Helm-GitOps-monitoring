@@ -1,0 +1,66 @@
+%% Export: docs/diagrams/architecture-cicd-sequence.png
+%% CI/CD sequence — build once, promote by digest, GitOps deploy
+sequenceDiagram
+  autonumber
+  actor Dev as Developer
+  participant GH as GitHub
+  participant ADO as Azure DevOps
+  participant ACRd as ACR dev
+  participant ACRs as ACR stage
+  participant ACRp as ACR prod
+  participant Argo as Argo CD
+  participant AKS as AKS cluster
+
+  rect rgb(240, 248, 255)
+    Note over Dev,AKS: CI — build, scan, push to dev ACR
+    Dev->>GH: Push code to main (or feature branch)
+    Dev->>ADO: Trigger CI pipeline (manual by default)
+    ADO->>GH: Checkout mono-repo
+    ADO->>ADO: Lint / test (placeholder)
+    ADO->>ADO: docker build apps/service/Dockerfile
+    ADO->>ACRd: docker push (tag = commit SHA)
+    ADO->>ACRd: Resolve image digest
+    ADO->>ADO: Trivy scan (HIGH/CRITICAL fail build)
+    ADO->>GH: Update gitops/envs/dev/values-*.yaml
+    ADO->>GH: Open GitOps PR (digest bump)
+    Dev->>GH: Review and merge PR
+  end
+
+  rect rgb(240, 255, 240)
+    Note over GH,AKS: GitOps deploy — dev (auto-sync)
+    Note over Argo: root app-of-apps syncs apps-dev + platform-dev
+    Argo->>GH: Watch gitops/ + charts/
+    Argo->>AKS: Helm sync workloads → dev namespace
+    Argo->>AKS: Sync policies (Quota, NP, LimitRange)
+    AKS->>ACRd: Pull image by digest
+  end
+
+  rect rgb(255, 248, 240)
+    Note over Dev,AKS: Promote to stage — no rebuild
+    Dev->>ADO: Trigger promote-to-stage pipeline
+    ADO->>GH: Read digest from dev values file
+    ADO->>ACRd: Validate source image exists
+    ADO->>ACRs: az acr import (same digest)
+    ADO->>GH: Update gitops/envs/stage/values-*.yaml
+    ADO->>GH: Open promotion PR
+    Dev->>GH: Merge PR
+    Argo->>AKS: Auto-sync apps-stage + platform-stage
+    AKS->>ACRs: Pull image by digest
+    ADO->>AKS: Smoke test stage.boutique.example.com
+  end
+
+  rect rgb(255, 240, 240)
+    Note over Dev,AKS: Promote to prod — approval + manual sync
+    Dev->>ADO: Trigger promote-to-prod pipeline
+    Note over ADO: Azure DevOps environment approval (promote-prod)
+    ADO->>GH: Read digest from stage values file
+    ADO->>ACRs: Validate source image exists
+    ADO->>ACRp: az acr import (same digest)
+    ADO->>GH: Update gitops/envs/prod/values-*.yaml
+    ADO->>GH: Open promotion PR (CODEOWNERS review)
+    Dev->>GH: Merge PR
+    Dev->>Argo: Manual Sync apps-prod + platform-prod
+    Argo->>AKS: Helm sync → prod namespace
+    AKS->>ACRp: Pull image by digest
+    ADO->>AKS: Smoke test boutique.example.com
+  end

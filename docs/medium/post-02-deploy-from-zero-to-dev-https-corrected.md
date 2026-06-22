@@ -6,7 +6,7 @@
 **Repo Link (use in story):** https://github.com/btilki/micser-apps-Azure-Terraform-Helm-GitOps-monitoring  
 
 **Images for Medium (from repo `docs/diagrams/`):**  
-1. `02-azure-resources.png`, `03-inside-cluster.png`, `01-cicd-flow.png`  
+1. `infrastructure-diagram.png`, `architecture-cicd-sequence.png`  
 2. `azure-devops-settings-service-connections.png`, `azure-devops-library-variable-group-github-token.png`  
 
 ---
@@ -73,7 +73,7 @@ Apply in this order only:
 
 Copy each stack's `*.tfvars.example` → `terraform.tfvars` and `backend.hcl.example` → `backend.hcl` before `terraform init` and `apply`.
 
-**[Insert image: 02-azure-resources.png — caption: Bootstrap state, shared platform, and per-environment registries.]**
+**[Insert image: infrastructure-diagram.png — caption: Bootstrap state, shared platform, per-environment registries, and cluster layout.]**
 
 Why three applies? **Blast radius and permissions:** shared infrastructure is long-lived; env stacks can be destroyed or recreated without touching the cluster definition. The dev ACR name in the frontend pipeline must match what Terraform outputs.
 
@@ -98,7 +98,7 @@ With `kubectl` pointed at the cluster, follow [Phase 2](https://github.com/btilk
 | **Argo CD** | Helm CLI → `argocd` namespace |
 | **Workloads + namespace policies** | Argo root app → `gitops/bootstrap/applications/` |
 
-**[Insert image: 03-inside-cluster.png — caption: Platform namespaces and app namespaces on one cluster. Export optional; see `docs/diagrams/README.md`.]**
+See `infrastructure-diagram.png` for platform namespaces, app namespaces, and Argo app-of-apps on one cluster.
 
 Copy `gitops/bootstrap/root-app.yaml.example` to `gitops/bootstrap/root-app.yaml`, set **`repoURL`** and **`targetRevision`** (usually `main`), then:
 
@@ -156,7 +156,7 @@ The repo already ships:
 2. Scans with **Trivy** (fails on high/critical vulnerabilities).
 3. Opens a GitHub PR updating `image.digest` in `gitops/envs/dev/values-frontend.yaml`.
 
-**[Insert image: 01-cicd-flow.png — caption: CI builds to dev ACR; merge the GitOps PR; Argo CD deploys to the dev namespace.]**
+**[Insert image: architecture-cicd-sequence.png — caption: CI builds to dev ACR; merge the GitOps PR; Argo CD deploys to the dev namespace.]**
 
 Set `ingress.host` in dev values to your hostname (e.g., `dev.boutique.example.com`). Keep `googleDemo.enabled: false` when using your own image—otherwise the chart can route to upstream ExternalName services and skip your build.
 

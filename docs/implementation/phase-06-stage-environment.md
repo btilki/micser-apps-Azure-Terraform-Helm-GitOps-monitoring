@@ -85,7 +85,7 @@ Root Application **`boutique-root`** syncs `gitops/bootstrap/applications/`; you
 
 ### Applications (dev and stage) in Argo CD:
 
-![alt text](./../diagrams/argocd-applications-stage-dev-services-overview.png)
+![Argo CD — stage and dev applications overview](./../diagrams/argocd-applications-stage-dev-services-overview.png)
 
 ### Boutique Apps Frontend on Stage Environment:
 

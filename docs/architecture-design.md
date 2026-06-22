@@ -132,12 +132,14 @@ ADR-001 captures the single-cluster-for-prod trade-off (§19).
 
 ## 5. High-level architecture
 
+> **Canonical diagrams (PNG):** [infrastructure-diagram.png](diagrams/infrastructure-diagram.png) and [architecture-cicd-sequence.png](diagrams/architecture-cicd-sequence.png). Editable sources: [diagrams/source/](diagrams/source/) — regenerate with [render-architecture-pngs.sh](diagrams/render-architecture-pngs.sh).
+
 ```mermaid
 flowchart LR
   dev[Developer] -->|push| GH[GitHub<br/>mono-repo]
   GH -->|trigger| ADO[Azure DevOps<br/>CI pipeline]
   ADO -->|build & scan| ACRD[(ACR dev)]
-  ADO -->|bump dev image tag| GHCfg[gitops/envs/dev]
+  ADO -->|bump dev image digest| GHCfg[gitops/envs/dev]
   GHCfg -->|watch| ArgoCD[ArgoCD]
   ArgoCD -->|sync dev ns| AKS[(AKS cluster)]
 
