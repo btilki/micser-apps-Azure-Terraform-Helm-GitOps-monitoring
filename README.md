@@ -2,6 +2,14 @@
 
 Mono-repo for Google’s [microservices-demo-apps](https://github.com/GoogleCloudPlatform/microservices-demo) on **Azure Kubernetes Service (AKS)** with **Terraform**, **Azure DevOps** CI/CD, **Argo CD** GitOps, and **kube-prometheus-stack** observability.
 
+## Architecture overview
+
+Terraform foundation, per-environment Azure resources, a single AKS cluster (dev / stage / prod namespaces), and GitOps-driven delivery.
+
+![Infrastructure diagram](docs/diagrams/infrastructure-diagram.png)
+
+CI/CD sequence: [docs/diagrams/architecture-cicd-sequence.png](docs/diagrams/architecture-cicd-sequence.png). Full diagram index: [docs/diagrams/README.md](docs/diagrams/README.md).
+
 ## Documentation
 
 | Document | Description |
